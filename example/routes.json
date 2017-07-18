@@ -4,7 +4,10 @@
   },
   "/second": {
     "/ctr": {
-      "get": "MySecondController#myAction"
+      "get": "MySecondController#myAction",
+      "/ok": {
+        "get": "MySecondController#mySecondAction"
+      }
     }
   }
 }

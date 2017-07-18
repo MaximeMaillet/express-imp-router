@@ -1,16 +1,31 @@
 {
-  "name": "site_test",
-  "version": "1.0.0",
-  "description": "",
+  "name": "express-imp-router",
+  "version": "0.0.1",
+  "description": "Router for express.JS",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "2max <maxime.maillet93@gmail.com>",
+  "license": "GPL-3.0",
   "dependencies": {
     "colors": "^1.1.2",
     "columnify": "^1.5.4",
+    "date-format": "^1.1.0",
     "node-emoji": "^1.7.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MaximeMaillet/express-imp-router.git"
+  },
+  "keywords": [
+    "express",
+    "router",
+    "controller"
+  ],
+  "bugs": {
+    "url": "https://github.com/MaximeMaillet/express-imp-router/issues"
+  },
+  "homepage": "https://github.com/MaximeMaillet/express-imp-router#readme"
 }
