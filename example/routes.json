@@ -1,0 +1,10 @@
+{
+  "/": {
+    "get": "MyController#myAction"
+  },
+  "/second": {
+    "/ctr": {
+      "get": "MySecondController#myAction"
+    }
+  }
+}
