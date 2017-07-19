@@ -110,30 +110,32 @@ module.exports = {
       var end = res.end;
       var chunks = [];
 
-      res.write = function (chunk) {
-        chunks.push(chunk);
+	    if(root.isLogActive) {
+		    res.write = function (chunk) {
+			    chunks.push(chunk);
+			    oldWrite.apply(res, arguments);
+		    };
 
-        oldWrite.apply(res, arguments);
-      };
+		    res.end = function (chunk) {
+			    var statusCode = res.statusCode.toString();
+			    statusCode = statusCode.startsWith('2') || statusCode.startsWith('3') ? statusCode.green : statusCode.red;
+			    var log =
+				    "[" + dateFormat('yyyy-MM-dd hh:mm:ss', new Date()) + "] " +
+				    req.method + " " + req.url + " > " + statusCode +
+				    " :: ";
 
-      res.end = function (chunk) {
-        if (chunk)
-          chunks.push(chunk);
+			    if (chunk) {
+				    chunks.push(chunk);
+			    }
 
-        var body = Buffer.concat(chunks).toString('utf8');
-        if(root.isLogActive) {
-          var statusCode = res.statusCode.toString();
-          statusCode = statusCode.startsWith('2') || statusCode.startsWith('3') ? statusCode.green : statusCode.red;
+			    if (Buffer.isBuffer(chunk)) {
+				    log += Buffer.concat(chunks).toString('utf8');;
+			    }
 
-          console.log(
-            "["+dateFormat('yyyy-MM-dd hh:mm:ss', new Date())+"] "+
-            req.method+" "+req.url + " > "+statusCode+
-            " :: "+body
-          );
-        }
-
-        end.apply(res, arguments);
-      };
+			    console.log(log);
+			    end.apply(res, arguments);
+		    };
+	    }
 
       next();
     });

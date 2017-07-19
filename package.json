@@ -1,6 +1,6 @@
 {
   "name": "express-imp-router",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Router for express.JS",
   "main": "router.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "colors": "^1.1.2",
     "columnify": "^1.5.4",
     "date-format": "^1.1.0",
+    "express": "^4.15.3",
     "node-emoji": "^1.7.0"
   },
   "devDependencies": {},
