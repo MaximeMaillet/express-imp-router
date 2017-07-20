@@ -1,13 +1,10 @@
 var express = require('express');
 var app = express();
 
-var router = require('../router');
-router.route(app, __dirname+'/routes.json', {
+var router = require('../router.js')({
+  express: app,
+  routes: __dirname+'/routes.json',
   controllers: __dirname+'/ctrls'
 });
-
-// @todo page static
-
-
 
 app.listen(6060);

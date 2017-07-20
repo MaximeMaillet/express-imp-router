@@ -1,13 +1,14 @@
 {
-  "/": {
-    "get": "MyController#myAction"
-  },
+  "404": "MySecondController#broken",
   "/second": {
     "/ctr": {
       "get": "MySecondController#myAction",
       "/ok": {
         "get": "MySecondController#mySecondAction"
       }
+    },
+    "/coucou": {
+      "static": "./public/"
     }
   }
 }
