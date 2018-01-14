@@ -4,7 +4,7 @@
   "description": "Router for express.JS",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=ExpressImpRouter ./node_modules/mocha/bin/mocha tests/index.js -v"
   },
   "author": "2max <maxime.maillet93@gmail.com>",
   "license": "GPL-3.0",
@@ -18,7 +18,10 @@
     "node-emoji": "^1.7.0"
   },
   "devDependencies": {
-    "eslint": "^4.15.0"
+    "chai": "^4.1.2",
+    "chai-http": "^3.0.0",
+    "eslint": "^4.15.0",
+    "mocha": "^4.1.0"
   },
   "repository": {
     "type": "git",

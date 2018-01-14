@@ -2,7 +2,7 @@
 const debug = require('debug')('ExpressImpRouter.index');
 const express = require('express');
 const Route = require('./src/route');
-let app = null, isDebug = false;
+let app = null, isDebug = false, isRedirect = false;
 
 /**
  * @param _app
@@ -32,7 +32,7 @@ module.exports.route = (routesConfig) => {
       app.use(staticRoute[i].route, express.static(staticRoute[i].controller, staticRoute[i].config));
     }
 
-    const routes = Route.routes('all');
+    const routes = Route.routes();
     for(const i in routes) {
       app[routes[i].method](routes[i].route, routes[i].function);
     }
@@ -44,6 +44,8 @@ module.exports.route = (routesConfig) => {
       const columns = columnify(Route.debug());
       console.log(columns);
     }
+
+    return Route.routes('user');
   } catch(e) {
     debug(e.message);
   }
@@ -95,15 +97,18 @@ function catchClientError(req, res, next) {
   const { end } = res;
 
   res.end = function() {
+    // console.log(`Catch client response : ${req.url} ${res.statusCode}`);
     const errorRoute = Route
       .routes('err')
       .filter((obj) => {
         return obj.extra.status === res.statusCode && obj.route !== req.url;
       });
 
-    if(errorRoute.length > 0) {
-      return res.redirect(errorRoute[0].route);
+    if(errorRoute.length > 0 && !isRedirect) {
+      return redirect(errorRoute[0], req, res, next);
     }
+
+    // @TODO catch own error (404, whatever ?)
 
     end.apply(res, arguments);
   };
@@ -124,10 +129,15 @@ function errorHandler(err, req, res, next) {
   });
 
   if(errorRoute.length > 0) {
-    res.redirect(`${errorRoute[0].route}`);
+    return redirect(errorRoute[0], req, res, next);
   } else {
-    res.status(500).send(err);
+    // @TODO : handle own error (html, json ??)
+    return res.status(500).send(err);
   }
+}
 
-  next();
+function redirect(routeConfig, req, res, next) {
+  // console.log(`Redirect to ${routeConfig.route}`);
+  isRedirect = true;
+  return routeConfig.function(req, res, next);
 }

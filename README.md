@@ -7,11 +7,15 @@ Create your routes file in JSON and redirect to controllers.
 ## Todo
 
 * Find controller directory by itself
-* Generate route from json object
+* Done test
+* Handle own errors
+* Manage upload
 
 ## Releases 0.2.0
 
 * Generate static routes
+* Generate route from json object
+* Add tests
 
 ## Releases 0.1.0
 

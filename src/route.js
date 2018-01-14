@@ -16,9 +16,7 @@ const StaticRoutes = [];
 module.exports.routes = (_type) => {
   const type = _type || 'user';
   if(type === 'all') {
-    return Routes.concat(ErrorRoutes).filter((obj) => {
-      return obj.generated;
-    });
+    return Routes.concat(ErrorRoutes).concat(StaticRoutes);
   }
   else if(type === 'err') {
     return ErrorRoutes.filter((obj) => {
@@ -26,7 +24,7 @@ module.exports.routes = (_type) => {
     });
   }
   else if(type === 'user') {
-    return Routes.filter((obj) => {
+    return Routes.concat(ErrorRoutes).filter((obj) => {
       return obj.generated;
     });
   } else if(type === 'static') {
@@ -70,30 +68,45 @@ module.exports.extractRoutesAndGenerate = (config) => {
   generateController(config.controllers);
 };
 
+module.exports.clear = () => {
+  Routes.splice(0, Routes.length);
+  ErrorRoutes.splice(0, ErrorRoutes.length);
+  StaticRoutes.splice(0, StaticRoutes.length);
+};
+
 /**
  * @param _routes
  */
 function extractRoutes(_routes) {
   debug('Extract routes');
-  const routes = require(_routes);
-
-  Object.keys(routes).map((route) => {
-
-    try {
-      if(typeof route !== 'string') {
-        throw new Error(`Route must be string not ${route} (${(typeof route)})`);
-      }
-
-      if(route.startsWith('/')) {
-        parseRoute(route, routes[route]);
-      }
-      else if(route.startsWith('_')) {
-        parseExtraRoutes(route, routes[route]);
-      }
-    } catch(e) {
-      debug(e.message);
+  try {
+    let routes = null;
+    if(typeof _routes === 'object') {
+      routes = _routes;
+    } else {
+      routes = require(_routes);
     }
-  });
+
+    Object.keys(routes).map((route) => {
+      try {
+        if(typeof route !== 'string') {
+          throw new Error(`Route must be string not ${route} (${(typeof route)})`);
+        }
+
+        if(route.startsWith('/')) {
+          parseRoute(route, routes[route]);
+        }
+        else if(route.startsWith('_')) {
+          parseExtraRoutes(route, routes[route]);
+        }
+      } catch(e) {
+        debug(e.message);
+      }
+    });
+  } catch(e) {
+    console.log(e);
+    debug(e.message);
+  }
 }
 
 /**
@@ -106,9 +119,6 @@ function parseRoute(parentRoute, config) {
   obj.map((key) => {
     if(key.startsWith('/')) {
       parseRoute(parentRoute+key, config[key]);
-    }
-    else if(key.startsWith('static')) {
-      // generateStatic(parentRoute, config[key]);
     }
     else if(configuration.METHODS.indexOf(key.toUpperCase()) !== -1) {
       Routes.push(generateRoute(key, parentRoute, config[key]));
@@ -131,6 +141,10 @@ function parseExtraRoutes(parentRoute, config) {
   }
 }
 
+/**
+ * @param parentRoute
+ * @param config
+ */
 function parseErrorRoutes(parentRoute, config) {
   const obj = Object.keys(config);
   obj.map((key) => {
@@ -275,26 +289,3 @@ function getAllHttpStatusFrom(statusCode) {
       });
   }
 }
-
-
-
-
-const R = {
-
-  /**
-   * Generate static route
-   * @param route
-   * @param directory
-   */
-  generateStatic: function(route, directory) {
-    Router.Routes.push({
-      status: `${emoji.get(':white_check_mark:')+'  Route generated'.green} : `,
-      method: 'STATIC',
-      route: route,
-      controller: directory
-    });
-
-    Router.options.express.use(route, express.static(directory));
-  },
-
-};
