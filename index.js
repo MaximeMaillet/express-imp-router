@@ -1,5 +1,6 @@
 'use strict';
 const debug = require('debug')('ExpressImpRouter.index');
+const express = require('express');
 const Route = require('./src/route');
 let app = null, isDebug = false;
 
@@ -25,6 +26,11 @@ module.exports.route = (routesConfig) => {
     readRoutesConfiguration(routesConfig);
 
     app.use(catchClientError);
+
+    const staticRoute = Route.routes('static');
+    for(const i in staticRoute) {
+      app.use(staticRoute[i].route, express.static(staticRoute[i].controller, staticRoute[i].config));
+    }
 
     const routes = Route.routes('all');
     for(const i in routes) {

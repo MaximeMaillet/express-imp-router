@@ -1,11 +1,13 @@
 'use strict';
 const debug = require('debug')('ExpressImpRouter.route');
 const configuration = require('./configuration');
+const colors = require('colors');
 const emoji = require('node-emoji');
 const httpWell = require('know-your-http-well'), phraseWell = httpWell.statusCodesToPhrases;
 
 const Routes = [];
 const ErrorRoutes = [];
+const StaticRoutes = [];
 
 /**
  * Return routes list
@@ -27,6 +29,10 @@ module.exports.routes = (_type) => {
     return Routes.filter((obj) => {
       return obj.generated;
     });
+  } else if(type === 'static') {
+    return StaticRoutes.filter((obj) => {
+      return obj.generated;
+    });
   }
 };
 
@@ -35,14 +41,14 @@ module.exports.routes = (_type) => {
  * @return {Array}
  */
 module.exports.debug = () => {
-  const route = Routes.concat(ErrorRoutes);
+  const route = Routes.concat(ErrorRoutes).concat(StaticRoutes);
   return route.map((obj) => {
     let status = null, {message} = obj;
     if(obj.generated) {
-      status = `${emoji.get(':white_check_mark:')+'  Route generated'.green} : `;
+      status = `${emoji.get(':white_check_mark:')}  Route generated : `.green;
       message = 'N/A';
     } else {
-      status = `${emoji.get(':x:')+'  Route generated'.red} : `;
+      status = `${emoji.get(':x:')}  Route not generated : `.red;
     }
 
     return {
@@ -82,7 +88,7 @@ function extractRoutes(_routes) {
         parseRoute(route, routes[route]);
       }
       else if(route.startsWith('_')) {
-        parseExtraRoutes(`/${route}`, routes[route]);
+        parseExtraRoutes(route, routes[route]);
       }
     } catch(e) {
       debug(e.message);
@@ -118,6 +124,14 @@ function parseRoute(parentRoute, config) {
  * @param config
  */
 function parseExtraRoutes(parentRoute, config) {
+  if(parentRoute === '_errors') {
+    parseErrorRoutes(`/${parentRoute}`, config);
+  } else if(parentRoute === '_static') {
+    parseStaticRoutes(parentRoute, config);
+  }
+}
+
+function parseErrorRoutes(parentRoute, config) {
   const obj = Object.keys(config);
   obj.map((key) => {
     if(key.indexOf('*') !== -1) {
@@ -133,6 +147,26 @@ function parseExtraRoutes(parentRoute, config) {
       ErrorRoutes.push(generateRoute('get', `${parentRoute}/${status.status}`, config[key], {status: parseInt(status.status)}));
     }
   });
+}
+
+function parseStaticRoutes(parentRoute, config) {
+  Object.keys(config).map((key) => {
+    StaticRoutes.push({
+      method: 'get',
+      route: key,
+      controller: config[key].target,
+      options: config[key].options,
+      generated: true,
+    });
+  });
+
+  //   Routes.push({
+  //     status: `${emoji.get(':white_check_mark:')+'  Route generated'.green} : `,
+  //     method: 'STATIC',
+  //     route: parentRoute,
+  //     controller: config.controller
+  //   });
+  // });
 }
 
 /**
@@ -241,3 +275,26 @@ function getAllHttpStatusFrom(statusCode) {
       });
   }
 }
+
+
+
+
+const R = {
+
+  /**
+   * Generate static route
+   * @param route
+   * @param directory
+   */
+  generateStatic: function(route, directory) {
+    Router.Routes.push({
+      status: `${emoji.get(':white_check_mark:')+'  Route generated'.green} : `,
+      method: 'STATIC',
+      route: route,
+      controller: directory
+    });
+
+    Router.options.express.use(route, express.static(directory));
+  },
+
+};
