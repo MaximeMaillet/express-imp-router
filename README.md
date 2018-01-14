@@ -1,6 +1,19 @@
-## Express IMP-Router
+# Express IMP-Router
 
-Create your routes file in JSON and redirect to controllers
+Router for Express.JS
+
+Create your routes file in JSON and redirect to controllers.
+
+## Todo
+
+* Find controller directory by itself
+* Generate static routes
+* Generate route from json object
+
+## Features
+
+* Generate routes from json file
+* Generate erros route with error handler 
 
 ## Installation
 
@@ -10,25 +23,20 @@ npm install express-imp-router --save
 
 ## Usage
 
-```js
+```javascript
 
-var express = require('express');
-var app = express();
+const express = require('express');
+const router = require('express-imp-router');
 
-var router = require('express-router');
-router.route(app, __dirname+'/routes.json', {
-  controllers: __dirname+'/ctrls'
-});
+const app = express();
+router(app);
 
+router.route([
+  {
+    routes: `${__dirname}/routes.json`,
+    controllers: `${__dirname}/controllers`
+  }
+]);
 
 app.listen(6060);
 ```
-
-## License
-
-##### GNU GENERAL PUBLIC LICENSE
-Version 3, 29 June 2007
-
-Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
-Everyone is permitted to copy and distribute verbatim copies
-of this license document, but changing it is not allowed.

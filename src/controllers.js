@@ -1,13 +1,20 @@
+'use strict';
+const debug = require('debug')('ScrappyScrapper:controllers');
+
+module.exports.extractFromRoute = (controllers, routes) => {
+
+};
+
 /**
  *
  * @param directory
  * @param ctrlAction
  * @returns {{getAction: getAction, getController: getController}}
  */
-module.exports = function(directory, ctrlAction) {
-  var control = ctrlAction.split('#');
-  var controller = control[0];
-  var action = control[1];
+module.exports.old = function(directory, ctrlAction) {
+  const control = ctrlAction.split('#');
+  const controller = control[0];
+  const action = control[1];
 
   try {
     var objectController = require(directory+controller);
@@ -15,7 +22,7 @@ module.exports = function(directory, ctrlAction) {
   catch(e) {
     // @todo debug
   }
-  var objectAction = null;
+  let objectAction = null;
 
   if(typeof objectController === 'object') {
     objectAction = objectController[action];
@@ -25,7 +32,7 @@ module.exports = function(directory, ctrlAction) {
   }
 
   if(typeof objectAction !== 'function') {
-    throw new Error(action+' is not a function');
+    throw new Error(`${action} is not a function`);
   }
 
   return {
@@ -35,5 +42,5 @@ module.exports = function(directory, ctrlAction) {
     getController: function() {
       return objectController;
     }
-  }
-}
+  };
+};
