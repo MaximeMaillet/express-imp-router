@@ -49,13 +49,7 @@ module.exports.route = (routesConfig) => {
 
     app.use(errorHandler);
 
-    app.use((req, res, next) => {
-      app.set('view engine', 'ejs');
-      res.status(404).render(`${__dirname}/src/assets/errors.ejs`, {
-        status: 404,
-        message: 'Not found'
-      });
-    });
+    app.use(notFoundHandler);
 
     if(isDebug) {
       const columnify = require('columnify');
@@ -131,6 +125,18 @@ function catchClientError(req, res, next) {
     end.apply(res, arguments);
   };
   next();
+}
+
+/**
+ * @param req
+ * @param res
+ */
+function notFoundHandler(req, res) {
+  app.set('view engine', 'ejs');
+  res.status(404).render(`${__dirname}/src/assets/errors.ejs`, {
+    status: 404,
+    message: 'Not found'
+  });
 }
 
 /**

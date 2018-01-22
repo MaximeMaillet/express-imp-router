@@ -4,7 +4,7 @@ const Route = require('../src/route');
 
 describe('Generating routes', () => {
 
-  afterEach((done) => {
+  beforeEach((done) => {
     Route.clear();
     done();
   });
