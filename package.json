@@ -14,6 +14,7 @@
     "columnify": "^1.5.4",
     "date-format": "^1.1.0",
     "debug": "^3.1.0",
+    "ejs": "^2.5.7",
     "express": "^4.15.3",
     "know-your-http-well": "^0.5.0",
     "multer": "^1.3.0",

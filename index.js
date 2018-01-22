@@ -49,6 +49,14 @@ module.exports.route = (routesConfig) => {
 
     app.use(errorHandler);
 
+    app.use((req, res, next) => {
+      app.set('view engine', 'ejs');
+      res.status(404).render(`${__dirname}/src/assets/errors.ejs`, {
+        status: 404,
+        message: 'Not found'
+      });
+    });
+
     if(isDebug) {
       const columnify = require('columnify');
       const columns = columnify(Route.debug());
@@ -119,12 +127,9 @@ function catchClientError(req, res, next) {
       return redirect(errorRoute[0], req, res, next);
     }
 
-    // @TODO catch own error (404, whatever ?)
-
     isRedirect = false;
     end.apply(res, arguments);
   };
-
   next();
 }
 
@@ -144,8 +149,11 @@ function errorHandler(err, req, res, next) {
     req.error = err;
     return redirect(errorRoute[0], req, res, next);
   } else {
-    // @TODO : handle own error (html, json ??)
-    return res.status(500).send(err.message);
+    app.set('view engine', 'ejs');
+    res.status(500).render(`${__dirname}/src/assets/errors.ejs`, {
+      status: 500,
+      message: err.message
+    });
   }
 }
 

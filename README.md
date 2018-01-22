@@ -9,13 +9,13 @@ Create your routes file in JSON and redirect to controllers.
 * Find controller directory by itself
 * Done test
 * Handle own errors
-* Manage upload
 
 ## Releases 0.2.0
 
 * Generate static routes
 * Generate route from json object
 * Add tests
+* Middleware
 
 ## Releases 0.1.0
 
