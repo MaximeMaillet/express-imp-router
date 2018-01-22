@@ -9,6 +9,10 @@
       "options": {}
     }
   },
+  "_middleware": {
+    "target": "/profile",
+    "action": "middleWare#run"
+  },
   "/user": {
     "get": "SubDirectory/UserController#get",
     "/player": {
@@ -22,5 +26,11 @@
     "/code_error": {
       "get": "FailController#err"
     }
+  },
+  "/upload": {
+    "post": "UploadController#upload"
+  },
+  "/upload_without_middleware": {
+    "post": "UploadController#up"
   }
 }

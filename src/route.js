@@ -8,6 +8,7 @@ const httpWell = require('know-your-http-well'), phraseWell = httpWell.statusCod
 const Routes = [];
 const ErrorRoutes = [];
 const StaticRoutes = [];
+const MiddleWares = [];
 
 /**
  * Return routes list
@@ -32,6 +33,12 @@ module.exports.routes = (_type) => {
       return obj.generated;
     });
   }
+};
+
+module.exports.middleware = (route) => {
+  return MiddleWares.filter((obj) => {
+    return obj.target === route;
+  });
 };
 
 /**
@@ -68,6 +75,9 @@ module.exports.extractRoutesAndGenerate = (config) => {
   generateController(config.controllers);
 };
 
+/**
+ * Clear all routes
+ */
 module.exports.clear = () => {
   Routes.splice(0, Routes.length);
   ErrorRoutes.splice(0, ErrorRoutes.length);
@@ -138,6 +148,8 @@ function parseExtraRoutes(parentRoute, config) {
     parseErrorRoutes(`/${parentRoute}`, config);
   } else if(parentRoute === '_static') {
     parseStaticRoutes(parentRoute, config);
+  } else if(parentRoute === '_middleware') {
+    parseMiddleware(parentRoute, config);
   }
 }
 
@@ -178,6 +190,20 @@ function parseStaticRoutes(parentRoute, config) {
       options: config[key].options,
       generated: true,
     });
+  });
+}
+
+/**
+ * Parse middlewares
+ * @param parentRoute
+ * @param config
+ */
+function parseMiddleware(parentRoute, config) {
+  const controllerConfig = config.action.split('#');
+  MiddleWares.push({
+    target: config.target,
+    controller: controllerConfig[0],
+    action: controllerConfig[1],
   });
 }
 
@@ -229,6 +255,14 @@ function generateController(controllers) {
   for(const i in ErrorRoutes) {
     try {
       assignControllerToRoute(controllers, ErrorRoutes[i]);
+    } catch(e) {
+      debug(e.message);
+    }
+  }
+
+  for(const i in MiddleWares) {
+    try {
+      assignControllerToRoute(controllers, MiddleWares[i]);
     } catch(e) {
       debug(e.message);
     }

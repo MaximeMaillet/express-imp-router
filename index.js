@@ -31,11 +31,19 @@ module.exports.route = (routesConfig) => {
 
     const staticRoute = Route.routes('static');
     for(const i in staticRoute) {
+      const middleware = Route.middleware(staticRoute[i].route);
+      for(const j in middleware) {
+        app.use(middleware[j].target, middleware[j].function);
+      }
       app.use(staticRoute[i].route, express.static(`${__dirname}${staticRoute[i].controller}`, staticRoute[i].options));
     }
 
     const routes = Route.routes();
     for(const i in routes) {
+      const middleware = Route.middleware(routes[i].route);
+      for(const j in middleware) {
+        app.use(middleware[j].target, middleware[j].function);
+      }
       app[routes[i].method](routes[i].route, routes[i].function);
     }
 
@@ -49,6 +57,7 @@ module.exports.route = (routesConfig) => {
 
     return Route.routes('user');
   } catch(e) {
+    console.log(e);
     debug(e.message);
   }
 };
