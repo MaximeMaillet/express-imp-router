@@ -1,10 +1,13 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const app = express();
 
-var router = require('../router.js')({
-  express: app,
-  routes: __dirname+'/routes.json',
-  controllers: __dirname+'/ctrls'
-});
+const router = require('../index');
+
+router(app);
+
+router.route([{
+  routes: `${__dirname}/routes.json`,
+  controllers: `${__dirname}/controllers`
+}]);
 
 app.listen(6060);

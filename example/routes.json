@@ -1,14 +1,26 @@
 {
-  "404": "MySecondController#broken",
-  "/second": {
-    "/ctr": {
-      "get": "MySecondController#myAction",
-      "/ok": {
-        "get": "MySecondController#mySecondAction"
-      }
+  "_errors": {
+    "404": "ErrorController#notFoundError",
+    "50*": "ErrorController#internalError"
+  },
+  "_static": {
+    "/public": {
+      "target": "/example/public",
+      "options": {}
+    }
+  },
+  "/user": {
+    "get": "SubDirectory/UserController#get",
+    "/player": {
+      "get": "SubDirectory/SubSubDirectory/PlayerController#get"
+    }
+  },
+  "/error": {
+    "/throw": {
+      "get": "FailController#throw"
     },
-    "/coucou": {
-      "static": "./public/"
+    "/code_error": {
+      "get": "FailController#err"
     }
   }
 }

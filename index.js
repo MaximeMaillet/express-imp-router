@@ -15,6 +15,8 @@ module.exports = function(_app) {
       isDebug = true;
     }
   });
+
+  return module.exports;
 };
 
 /**
@@ -29,7 +31,7 @@ module.exports.route = (routesConfig) => {
 
     const staticRoute = Route.routes('static');
     for(const i in staticRoute) {
-      app.use(staticRoute[i].route, express.static(staticRoute[i].controller, staticRoute[i].config));
+      app.use(staticRoute[i].route, express.static(`${__dirname}${staticRoute[i].controller}`, staticRoute[i].options));
     }
 
     const routes = Route.routes();
@@ -110,6 +112,7 @@ function catchClientError(req, res, next) {
 
     // @TODO catch own error (404, whatever ?)
 
+    isRedirect = false;
     end.apply(res, arguments);
   };
 
@@ -129,15 +132,16 @@ function errorHandler(err, req, res, next) {
   });
 
   if(errorRoute.length > 0) {
+    req.error = err;
     return redirect(errorRoute[0], req, res, next);
   } else {
     // @TODO : handle own error (html, json ??)
-    return res.status(500).send(err);
+    return res.status(500).send(err.message);
   }
 }
 
 function redirect(routeConfig, req, res, next) {
-  // console.log(`Redirect to ${routeConfig.route}`);
+  console.log(`Redirect to ${routeConfig.route}`);
   isRedirect = true;
   return routeConfig.function(req, res, next);
 }

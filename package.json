@@ -4,7 +4,8 @@
   "description": "Router for express.JS",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=ExpressImpRouter ./node_modules/mocha/bin/mocha tests/index.js -v"
+    "test": "NODE_ENV=ExpressImpRouter ./node_modules/mocha/bin/mocha tests/index.js -v",
+    "start": "node example/index.js -v"
   },
   "author": "2max <maxime.maillet93@gmail.com>",
   "license": "GPL-3.0",

@@ -163,24 +163,22 @@ function parseErrorRoutes(parentRoute, config) {
   });
 }
 
+/**
+ * Generate static routes
+ * @param parentRoute
+ * @param config
+ */
 function parseStaticRoutes(parentRoute, config) {
   Object.keys(config).map((key) => {
     StaticRoutes.push({
       method: 'get',
       route: key,
       controller: config[key].target,
+      action: '*',
       options: config[key].options,
       generated: true,
     });
   });
-
-  //   Routes.push({
-  //     status: `${emoji.get(':white_check_mark:')+'  Route generated'.green} : `,
-  //     method: 'STATIC',
-  //     route: parentRoute,
-  //     controller: config.controller
-  //   });
-  // });
 }
 
 /**
