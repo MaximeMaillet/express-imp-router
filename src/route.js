@@ -10,6 +10,7 @@ const ErrorRoutes = [];
 const StaticRoutes = [];
 const MiddleWares = [];
 const GlobalMiddleWares = [];
+const ViewEngine = [];
 
 /**
  * Return routes list
@@ -45,6 +46,10 @@ module.exports.middleware = (route) => {
     const reg = new RegExp(`^${obj.target}*`);
     return reg.test(route);
   });
+};
+
+module.exports.viewsEngine = () => {
+  return ViewEngine;
 };
 
 /**
@@ -116,6 +121,7 @@ function extractRoutes(_routes) {
           parseExtraRoutes(route, routes[route]);
         }
       } catch(e) {
+        console.log(e);
         debug(e.message);
       }
     });
@@ -156,6 +162,8 @@ function parseExtraRoutes(parentRoute, config) {
     parseStaticRoutes(parentRoute, config);
   } else if(parentRoute === '_middleware') {
     parseMiddleware(parentRoute, config);
+  } else if(parentRoute === '_views') {
+    parseViews(parentRoute, config);
   }
 }
 
@@ -231,6 +239,16 @@ function parseMiddleware(parentRoute, config) {
   }
 }
 
+function parseViews(parentRoute, config) {
+  for(const i in config) {
+    ViewEngine.push({
+      views: config[i].directory,
+      engine: config[i].engine,
+      controller: config[i].target,
+    });
+  }
+}
+
 /**
  * @param method
  * @param route
@@ -268,9 +286,9 @@ function generateRoute(method, route, config, extra) {
  * @param controllers
  */
 function generateController(controllers) {
-  const arrayToScan = [Routes, ErrorRoutes, MiddleWares, GlobalMiddleWares];
+  const arrayToScan = [Routes, ErrorRoutes, MiddleWares, GlobalMiddleWares, ViewEngine];
   for(const i in arrayToScan) {
-    for(const k in arrayToScan) {
+    for(const k in arrayToScan[i]) {
       try {
         assignControllerToRoute(controllers, arrayToScan[i][k]);
       } catch(e) {
@@ -290,6 +308,9 @@ function assignControllerToRoute(controllers, route) {
   let fnctn = null;
   if(typeof ctrl === 'object') {
     fnctn = ctrl[route.action];
+  }
+  else if(typeof ctrl === 'function') {
+    fnctn = ctrl;
   }
   else {
     route.message = `Controller not found : ${route.controller}`;

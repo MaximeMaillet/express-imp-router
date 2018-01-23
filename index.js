@@ -34,13 +34,20 @@ module.exports.route = (routesConfig) => {
       globalMiddleware[i].function(app);
     }
 
+    const viewsEngine = Route.viewsEngine();
+    for(const i in viewsEngine) {
+      app.set('views', viewsEngine[i].views);
+      app.set('view engine', viewsEngine[i].engine);
+      app.engine('jsx', viewsEngine[i].function);
+    }
+
     const staticRoute = Route.routes('static');
     for(const i in staticRoute) {
       const middleware = Route.middleware(staticRoute[i].route);
       for(const j in middleware) {
         app.use(middleware[j].target, middleware[j].function);
       }
-      app.use(staticRoute[i].route, express.static(`${__dirname}${staticRoute[i].controller}`, staticRoute[i].options));
+      app.use(staticRoute[i].route, express.static(`${staticRoute[i].controller}`, staticRoute[i].options));
     }
 
     const routes = Route.routes();
