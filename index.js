@@ -29,6 +29,11 @@ module.exports.route = (routesConfig) => {
 
     app.use(catchClientError);
 
+    const globalMiddleware = Route.middleware('all');
+    for(const i in globalMiddleware) {
+      globalMiddleware[i].function(app);
+    }
+
     const staticRoute = Route.routes('static');
     for(const i in staticRoute) {
       const middleware = Route.middleware(staticRoute[i].route);
@@ -124,6 +129,7 @@ function catchClientError(req, res, next) {
     isRedirect = false;
     end.apply(res, arguments);
   };
+
   next();
 }
 
@@ -150,6 +156,10 @@ function errorHandler(err, req, res, next) {
   const errorRoute = Route.routes('err').filter((obj) => {
     return obj.extra.status === 500;
   });
+
+  if(isDebug) {
+    console.log(err);
+  }
 
   if(errorRoute.length > 0) {
     req.error = err;

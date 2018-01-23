@@ -9,6 +9,7 @@ const Routes = [];
 const ErrorRoutes = [];
 const StaticRoutes = [];
 const MiddleWares = [];
+const GlobalMiddleWares = [];
 
 /**
  * Return routes list
@@ -36,8 +37,13 @@ module.exports.routes = (_type) => {
 };
 
 module.exports.middleware = (route) => {
+  if(route === 'all') {
+    return GlobalMiddleWares;
+  }
+
   return MiddleWares.filter((obj) => {
-    return obj.target === route;
+    const reg = new RegExp(`^${obj.target}*`);
+    return reg.test(route);
   });
 };
 
@@ -199,12 +205,30 @@ function parseStaticRoutes(parentRoute, config) {
  * @param config
  */
 function parseMiddleware(parentRoute, config) {
-  const controllerConfig = config.action.split('#');
-  MiddleWares.push({
-    target: config.target,
-    controller: controllerConfig[0],
-    action: controllerConfig[1],
-  });
+  for(const i in config) {
+    if(Array.isArray(config[i].action)) {
+      for(const k in config[i].action) {
+        const controllerConfig = config[i].action[k].split('#');
+
+        if(Array.isArray(config[i].target)) {
+          for(const j in config[i].target) {
+            MiddleWares.push({
+              target: config[i].target[j],
+              controller: controllerConfig[0],
+              action: controllerConfig[1],
+            });
+          }
+        }
+        else {
+          GlobalMiddleWares.push({
+            target: config[i].target,
+            controller: controllerConfig[0],
+            action: controllerConfig[1],
+          });
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -244,27 +268,14 @@ function generateRoute(method, route, config, extra) {
  * @param controllers
  */
 function generateController(controllers) {
-  for(const i in Routes) {
-    try {
-      assignControllerToRoute(controllers, Routes[i]);
-    } catch(e) {
-      debug(e.message);
-    }
-  }
-
-  for(const i in ErrorRoutes) {
-    try {
-      assignControllerToRoute(controllers, ErrorRoutes[i]);
-    } catch(e) {
-      debug(e.message);
-    }
-  }
-
-  for(const i in MiddleWares) {
-    try {
-      assignControllerToRoute(controllers, MiddleWares[i]);
-    } catch(e) {
-      debug(e.message);
+  const arrayToScan = [Routes, ErrorRoutes, MiddleWares, GlobalMiddleWares];
+  for(const i in arrayToScan) {
+    for(const k in arrayToScan) {
+      try {
+        assignControllerToRoute(controllers, arrayToScan[i][k]);
+      } catch(e) {
+        debug(e.message);
+      }
     }
   }
 }
