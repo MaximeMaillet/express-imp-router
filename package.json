@@ -1,6 +1,6 @@
 {
   "name": "express-imp-router",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Router for express.JS",
   "main": "index.js",
   "scripts": {
@@ -27,7 +27,8 @@
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
     "eslint": "^4.15.0",
-    "mocha": "^4.1.0"
+    "mocha": "^4.1.0",
+    "nodemon": "^1.14.11"
   },
   "repository": {
     "type": "git",

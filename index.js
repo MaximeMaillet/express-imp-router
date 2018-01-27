@@ -31,21 +31,21 @@ module.exports.route = (routesConfig) => {
 
     const globalMiddleware = Route.middleware('all');
     for(const i in globalMiddleware) {
-      globalMiddleware[i].function(app);
+      app.use(globalMiddleware[i].action);
     }
 
     const viewsEngine = Route.viewsEngine();
     for(const i in viewsEngine) {
       app.set('views', viewsEngine[i].views);
       app.set('view engine', viewsEngine[i].engine);
-      app.engine('jsx', viewsEngine[i].function);
+      app.engine('jsx', viewsEngine[i].action);
     }
 
     const staticRoute = Route.routes('static');
     for(const i in staticRoute) {
       const middleware = Route.middleware(staticRoute[i].route);
       for(const j in middleware) {
-        app.use(middleware[j].target, middleware[j].function);
+        app.use(middleware[j].target, middleware[j].action);
       }
       app.use(staticRoute[i].route, express.static(`${staticRoute[i].controller}`, staticRoute[i].options));
     }
@@ -54,9 +54,9 @@ module.exports.route = (routesConfig) => {
     for(const i in routes) {
       const middleware = Route.middleware(routes[i].route);
       for(const j in middleware) {
-        app.use(middleware[j].target, middleware[j].function);
+        app.use(middleware[j].target, middleware[j].action);
       }
-      app[routes[i].method](routes[i].route, routes[i].function);
+      app[routes[i].method](routes[i].route, routes[i].action);
     }
 
     app.use(errorHandler);
@@ -107,6 +107,14 @@ function configuration(config) {
 
   if(!config.controllers.endsWith('/')) {
     config.controllers += '/';
+  }
+
+  if(config.errorHandler && !config.errorHandler.endsWith('/')) {
+    config.errorHandler += '/';
+  }
+
+  if(config.middlewares && !config.middlewares.endsWith('/')) {
+    config.middlewares += '/';
   }
 
   return config;
@@ -160,17 +168,26 @@ function notFoundHandler(req, res) {
  * @param next
  */
 function errorHandler(err, req, res, next) {
+  req.error = err;
+  const errorHandlers = Route.routes('handler').filter((obj) => {
+    return obj.target === req.url;
+  });
+
+  if(errorHandlers.length > 0) {
+    return redirect(errorHandlers[0], req, res, next);
+  }
+
+
   const errorRoute = Route.routes('err').filter((obj) => {
     return obj.extra.status === 500;
   });
 
   if(isDebug) {
-    console.log(err);
+    console.log(err.message);
   }
 
   if(errorRoute.length > 0) {
-    req.error = err;
-    return redirect(errorRoute[0], req, res, next);
+    return redirect(errorRoute[0], req, res, next, err);
   } else {
     app.set('view engine', 'ejs');
     res.status(500).render(`${__dirname}/src/assets/errors.ejs`, {
@@ -183,5 +200,5 @@ function errorHandler(err, req, res, next) {
 function redirect(routeConfig, req, res, next) {
   console.log(`Redirect to ${routeConfig.route}`);
   isRedirect = true;
-  return routeConfig.function(req, res, next);
+  return routeConfig.action(req, res, next);
 }

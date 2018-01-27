@@ -11,6 +11,13 @@ const StaticRoutes = [];
 const MiddleWares = [];
 const GlobalMiddleWares = [];
 const ViewEngine = [];
+const ErrorsHandler = [];
+
+const path = {
+  errorHandler: null,
+  middlewares: null,
+  controllers: null,
+};
 
 /**
  * Return routes list
@@ -32,6 +39,10 @@ module.exports.routes = (_type) => {
     });
   } else if(type === 'static') {
     return StaticRoutes.filter((obj) => {
+      return obj.generated;
+    });
+  } else if(type === 'handler') {
+    return ErrorsHandler.filter((obj) => {
       return obj.generated;
     });
   }
@@ -56,7 +67,7 @@ module.exports.viewsEngine = () => {
  * @return {Array}
  */
 module.exports.debug = () => {
-  const route = Routes.concat(ErrorRoutes).concat(StaticRoutes);
+  const route = Routes.concat(StaticRoutes);//.concat(ErrorRoutes).concat(StaticRoutes);
   return route.map((obj) => {
     let status = null, {message} = obj;
     if(obj.generated) {
@@ -70,19 +81,11 @@ module.exports.debug = () => {
       status,
       method: obj.method.toUpperCase(),
       route: obj.route,
-      controller: obj.controller,
-      action: obj.action,
+      controller: obj.debug.controller,
+      action: obj.debug.action,
       message
     };
   });
-};
-
-/**
- * @param config
- */
-module.exports.extractRoutesAndGenerate = (config) => {
-  extractRoutes(config.routes);
-  generateController(config.controllers);
 };
 
 /**
@@ -95,39 +98,48 @@ module.exports.clear = () => {
 };
 
 /**
- * @param _routes
+ * @param config
  */
-function extractRoutes(_routes) {
-  debug('Extract routes');
-  try {
-    let routes = null;
-    if(typeof _routes === 'object') {
-      routes = _routes;
-    } else {
-      routes = require(_routes);
-    }
+module.exports.extractRoutesAndGenerate = (config) => {
+  path.errorHandler = config.errorHandler || null;
+  path.middlewares = config.middlewares || null;
+  path.controllers = config.controllers || null;
 
-    Object.keys(routes).map((route) => {
-      try {
-        if(typeof route !== 'string') {
-          throw new Error(`Route must be string not ${route} (${(typeof route)})`);
-        }
-
-        if(route.startsWith('/')) {
-          parseRoute(route, routes[route]);
-        }
-        else if(route.startsWith('_')) {
-          parseExtraRoutes(route, routes[route]);
-        }
-      } catch(e) {
-        console.log(e);
-        debug(e.message);
-      }
-    });
-  } catch(e) {
-    console.log(e);
-    debug(e.message);
+  let routes = null;
+  if(typeof config.routes === 'object') {
+    routes = config.routes;
+  } else {
+    routes = require(config.routes);
   }
+
+  extract(routes);
+  generate();
+};
+
+/**
+ * @param routes
+ */
+function extract(routes) {
+  debug('Extract routes');
+  Object.keys(routes).map((route) => {
+    try {
+      if(typeof route !== 'string') {
+        throw new Error('Route should be a string');
+      }
+
+      if(route.startsWith('/')) {
+        parseRoute(route, routes[route]);
+      }
+      else if(route.startsWith('_')) {
+        parseExtraRoutes(route, routes[route]);
+      }
+
+    } catch(e) {
+      // @todo up error to front
+      console.log(e);
+      debug(e.message);
+    }
+  });
 }
 
 /**
@@ -135,65 +147,86 @@ function extractRoutes(_routes) {
  * @param config
  */
 function parseRoute(parentRoute, config) {
-  const obj = Object.keys(config);
+  if(typeof config !== 'object') {
+    throw new Error(`Route config malformed, it should be an object. ${typeof config} given`);
+  }
 
-  obj.map((key) => {
-    if(key.startsWith('/')) {
+  Object.keys(config).map((key) => {
+    if(configuration.METHODS.indexOf(key.toUpperCase()) !== -1) {
+      Routes.push(extractRoute(parentRoute, key, config));
+    }
+    else if(key.startsWith('/')) {
       parseRoute(parentRoute+key, config[key]);
     }
-    else if(configuration.METHODS.indexOf(key.toUpperCase()) !== -1) {
-      Routes.push(generateRoute(key, parentRoute, config[key]));
-    }
     else {
-      throw new Error(`Syntax malformed : (${key})`);
+      throw new Error(`Syntax malformed : (${parentRoute})`);
     }
   });
 }
 
-/**
- * @param parentRoute
- * @param config
- */
-function parseExtraRoutes(parentRoute, config) {
-  if(parentRoute === '_errors') {
-    parseErrorRoutes(`/${parentRoute}`, config);
-  } else if(parentRoute === '_static') {
-    parseStaticRoutes(parentRoute, config);
-  } else if(parentRoute === '_middleware') {
-    parseMiddleware(parentRoute, config);
-  } else if(parentRoute === '_views') {
-    parseViews(parentRoute, config);
+function extractRoute(parentRoute, key, config) {
+  if(typeof config[key] === 'object') {
+    return extractRouteFromConfig(parentRoute, Object.assign({method: key}, config[key]));
+  } else if(typeof config[key] === 'string') {
+    return extractRouteFromString(parentRoute, key, config);
+  } else {
+    throw new Error(`Syntax malformed : ${parentRoute}`);
   }
 }
 
 /**
- * @param parentRoute
+ * @param name
  * @param config
  */
-function parseErrorRoutes(parentRoute, config) {
-  const obj = Object.keys(config);
-  obj.map((key) => {
-    if(key.indexOf('*') !== -1) {
-      const status = getAllHttpStatusFrom(key.charAt(0));
-      for(const i in status) {
-        config = Object.assign(config, {error: status[i].message});
-        ErrorRoutes.push(generateRoute('get', `${parentRoute}/${status[i].status}`, config[key], {status: parseInt(status[i].status)}));
+function parseExtraRoutes(name, config) {
+  if(name === '_errors') {
+    parseErrorRoutes(`/${name}`, config);
+  } else if(name === '_static') {
+    parseStaticRoutes(config);
+  } else if(name === '_middlewares') {
+    parseMiddleware(config);
+  } else if(name === '_views') {
+    parseViews(config);
+  }
+}
+
+/**
+ * Parse middlewares
+ * @param config
+ */
+function parseMiddleware(config) {
+  for(const i in config) {
+    if(config[i].target === '*') {
+      for(const j in config[i].action) {
+        let controller = config[i].action[j], action = null;
+        if(config[i].action[j].indexOf('#') !== -1) {
+          [controller, action] = config[i].action[j].split('#');
+        }
+
+        GlobalMiddleWares.push({
+          controller,
+          action,
+          debug: {
+            target: 'all',
+            controller: config[i].action[j],
+            action: action,
+          }
+        });
       }
     }
     else {
-      const status = getAllHttpStatusFrom(key);
-      config = Object.assign(config, {error: status.message});
-      ErrorRoutes.push(generateRoute('get', `${parentRoute}/${status.status}`, config[key], {status: parseInt(status.status)}));
+      for(const j in config[i].action) {
+        extractMiddleware(config[i].action[j], config[i].target);
+      }
     }
-  });
+  }
 }
 
 /**
  * Generate static routes
- * @param parentRoute
  * @param config
  */
-function parseStaticRoutes(parentRoute, config) {
+function parseStaticRoutes(config) {
   Object.keys(config).map((key) => {
     StaticRoutes.push({
       method: 'get',
@@ -202,43 +235,51 @@ function parseStaticRoutes(parentRoute, config) {
       action: '*',
       options: config[key].options,
       generated: true,
+      debug: {
+        controller: config[key].target,
+        action: '*'
+      }
     });
   });
 }
 
 /**
- * Parse middlewares
- * @param parentRoute
+ * @param name
  * @param config
  */
-function parseMiddleware(parentRoute, config) {
-  for(const i in config) {
-    if(Array.isArray(config[i].action)) {
-      for(const k in config[i].action) {
-        const controllerConfig = config[i].action[k].split('#');
-
-        if(Array.isArray(config[i].target)) {
-          for(const j in config[i].target) {
-            MiddleWares.push({
-              target: config[i].target[j],
-              controller: controllerConfig[0],
-              action: controllerConfig[1],
-            });
+function parseErrorRoutes(name, config) {
+  Object.keys(config).map((key) => {
+    Object.keys(config[key]).map((method) => {
+      if(key.indexOf('*') !== -1) {
+        const status = getAllHttpStatusFrom(key.charAt(0));
+        for(const i in status) {
+          const route = extractRoute(`${name}/${status[i].status}`, method, Object.assign(config[key], {
+            extra: {
+              status: parseInt(status[i].status)
+            }
+          }));
+          Routes.push(route);
+          ErrorRoutes.push(route);
+        }
+      } else {
+        const route = extractRoute(`${name}/${key}`, method, Object.assign(config[key], {
+          method: key,
+          extra: {
+            status: parseInt(key)
           }
-        }
-        else {
-          GlobalMiddleWares.push({
-            target: config[i].target,
-            controller: controllerConfig[0],
-            action: controllerConfig[1],
-          });
-        }
+        }));
+        Routes.push(route);
+        ErrorRoutes.push(route);
       }
-    }
-  }
+    });
+  });
 }
 
-function parseViews(parentRoute, config) {
+/**
+ * @todo to tests
+ * @param config
+ */
+function parseViews(config) {
   for(const i in config) {
     ViewEngine.push({
       views: config[i].directory,
@@ -249,48 +290,253 @@ function parseViews(parentRoute, config) {
 }
 
 /**
+ * Generate route with configuration
+ * @param route
+ * @param config
+ * @return {{route: *, method, controller: *, action: *, errorHandler: (null|*|string), middleware: *, generated: boolean}}
+ */
+function extractRouteFromConfig(route, config) {
+  if(!config.controller) {
+    throw new Error('Controller is missing');
+  }
+
+  let controller = null, action = null, dController = null, dAction = null;
+  let generated = false;
+
+  if(typeof config.controller === 'string') {
+    [controller, action] = config.controller.split('#');
+    dController = controller;
+    dAction = action;
+  } else if(typeof config.controller === 'function') {
+    action = config.controller;
+    dController = 'Anonymous';
+    dAction = 'N/A';
+    generated = true;
+  } else {
+    throw new Error(`Controller malformed. String or function expected, ${typeof config.controller} givent.`);
+  }
+
+  if(config.middlewares) {
+    for(const i in config.middlewares) {
+      extractMiddleware(config.middlewares[i], [route]);
+    }
+  }
+
+  if(config.errorHandler) {
+    extractErrorHandler(route, config.errorHandler);
+  }
+
+  return {
+    route,
+    method: config.method,
+    controller,
+    action,
+    generated,
+    extra: config.extra,
+    debug: {
+      controller: dController,
+      action: dAction,
+    }
+  };
+}
+
+/**
+ * Generate route from string, whitout configuration
+ * @param route
+ * @param method
+ * @param config
+ * @return {{route: *, method: *, controller, action, generated: boolean}}
+ */
+function extractRouteFromString(route, method, config) {
+  const [controller, action] = config[method].split('#');
+  return {
+    route,
+    method,
+    controller,
+    action,
+    generated: false,
+    extra: config.extra,
+    debug: {
+      controller: controller,
+      action: action,
+    }
+  };
+}
+
+/**
+ * Extract middleware
+ * @param name
+ * @param targets
+ */
+function extractMiddleware(name, targets) {
+  for(const i in targets) {
+    if(name.indexOf('#') !== -1) {
+      const [controller, action] = name.split('#');
+      MiddleWares.push({
+        target: targets[i],
+        controller,
+        action,
+      });
+    } else {
+      MiddleWares.push({
+        target: targets[i],
+        controller: name,
+      });
+    }
+  }
+}
+
+/**
+ * Extract error handler
+ * @param target
+ * @param name
+ */
+function extractErrorHandler(target, name) {
+  if(name.indexOf('#') !== -1) {
+    const [controller, action] = name.split('#');
+    ErrorsHandler.push({
+      target: target,
+      controller,
+      action,
+    });
+  } else {
+    ErrorsHandler.push({
+      target: target,
+      controller: name,
+    });
+  }
+}
+
+/**
+ * Generate controller of all routes & middlewares
+ */
+function generate() {
+  for(const i in Routes) {
+    Routes[i] = generateController(path.controllers, Routes[i]);
+  }
+
+  for(const i in MiddleWares) {
+    MiddleWares[i] = generateController(path.middlewares, MiddleWares[i]);
+  }
+
+  for(const i in GlobalMiddleWares) {
+    GlobalMiddleWares[i] = generateController(path.middlewares, GlobalMiddleWares[i]);
+  }
+
+  for(const i in ErrorsHandler) {
+    ErrorsHandler[i] = generateController(path.errorHandler, ErrorsHandler[i]);
+  }
+}
+
+/**
+ * Generate controller
+ * @param _path
+ * @param config
+ * @return {*}
+ */
+function generateController(_path, config) {
+  if(config.controller === null) {
+    delete config.controller;
+    config.generated = true;
+    return config;
+  }
+
+  config.action = getAction(_path+config.controller, config.action);
+  delete config.controller;
+  config.generated = true;
+  return config;
+}
+
+
+/**
+ * @param _controller
+ * @param _action
+ * @return {{controller: *, action: *}}
+ */
+function getAction(_controller, _action) {
+  const controller = require(_controller);
+  let action = null;
+
+  if(!controller) {
+    throw new Error(`${controller} does not exists`);
+  }
+
+  if(!_action) {
+    return controller;
+  }
+
+  if(typeof controller === 'function' && _action) {
+    console.log(`Warning! You try to call action while controller is a function. ${_controller}#${_action}`.red);
+  }
+
+  if(typeof controller === 'object') {
+    action = controller[_action];
+
+    if(typeof action !== 'function') {
+      throw new Error(`${controller}#${action} is not a function`);
+    }
+
+    return action;
+  }
+  else if(typeof controller === 'function') {
+    return controller;
+  }
+
+  return action;
+}
+
+
+
+
+
+
+
+/**
  * @param method
  * @param route
  * @param config
  * @param extra
  */
-function generateRoute(method, route, config, extra) {
-  if(typeof config === 'object' && config.controller && config.action) {
-    return {
-      method,
-      route,
-      controller: config.controller,
-      action: config.action,
-      generated: false,
-      extra,
-    };
+function generateRoute2(method, route, config, extra) {
+  if(typeof config === 'object') {
+    return generateRouteFromObject(method, route, config, extra);
   }
   else if(typeof config === 'string' && config.indexOf('#') !== -1) {
-    const controllerConfig = config.split('#');
-    return {
-      method,
-      route,
-      controller: controllerConfig[0],
-      action: controllerConfig[1],
-      generated: false,
-      extra,
-    };
+    return generateRouteFromString(method, route, config, extra);
   }
   else {
     throw new Error(`Controllers route is malformed : ${config}`);
   }
 }
 
+function generateRouteFromString2(method, route, config, extra) {
+  const controllerConfig = config.split('#');
+  return {
+    method,
+    route,
+    controller: controllerConfig[0],
+    action: controllerConfig[1],
+    generated: false,
+    extra,
+  };
+}
+function generateRouteFromObject(method, route, config, extra) {
+
+}
+
+
+
 /**
  * @param controllers
  */
-function generateController(controllers) {
+function generateController2(controllers) {
   const arrayToScan = [Routes, ErrorRoutes, MiddleWares, GlobalMiddleWares, ViewEngine];
   for(const i in arrayToScan) {
     for(const k in arrayToScan[i]) {
       try {
         assignControllerToRoute(controllers, arrayToScan[i][k]);
       } catch(e) {
+        console.log(e);
         debug(e.message);
       }
     }
@@ -352,3 +598,26 @@ function getAllHttpStatusFrom(statusCode) {
       });
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

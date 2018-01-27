@@ -23,6 +23,32 @@ Create your routes file in JSON and redirect to controllers.
 * Generate routes from json file
 * Generate erros route with error handler 
 
+
+```json
+"/route": {
+  "method": {
+    "controller",
+    "errorHandler",
+    "middleware"
+  }
+}
+```
+
+```json
+"/route": {
+  "method": "controller#action"
+}
+```
+
+```json
+"/route": {
+  "method": (req, res, next) => {
+    // todo
+  }
+}
+```
+
+
 ## Installation
 
 ```bash
