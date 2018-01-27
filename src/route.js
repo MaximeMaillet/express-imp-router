@@ -43,8 +43,7 @@ module.exports.middleware = (route) => {
   }
 
   return MiddleWares.filter((obj) => {
-    const reg = new RegExp(`^${obj.target}*`);
-    return reg.test(route);
+    return obj.target === route;
   });
 };
 

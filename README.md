@@ -9,6 +9,7 @@ Create your routes file in JSON and redirect to controllers.
 * Find controller directory by itself
 * Done test
 * Handle own errors
+* Renvoyer les erreurs provenant des middlewares
 
 ## Releases 0.2.0
 
