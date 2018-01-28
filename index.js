@@ -29,7 +29,7 @@ module.exports.route = (routesConfig) => {
 
     app.use(catchClientError);
 
-    const globalMiddleware = Route.middleware('all');
+    const globalMiddleware = Route.middleware('init');
     for(const i in globalMiddleware) {
       app.use(globalMiddleware[i].action);
     }
@@ -54,7 +54,11 @@ module.exports.route = (routesConfig) => {
     for(const i in routes) {
       const middleware = Route.middleware(routes[i].route);
       for(const j in middleware) {
-        app.use(middleware[j].target, middleware[j].action);
+        if(middleware[j].target === '*') {
+          app.use(routes[i].route, middleware[j].action);
+        } else {
+          app.use(middleware[j].target, middleware[j].action);
+        }
       }
       app[routes[i].method](routes[i].route, routes[i].action);
     }

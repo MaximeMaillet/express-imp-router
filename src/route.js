@@ -49,12 +49,12 @@ module.exports.routes = (_type) => {
 };
 
 module.exports.middleware = (route) => {
-  if(route === 'all') {
+  if(route === 'init') {
     return GlobalMiddleWares;
   }
 
   return MiddleWares.filter((obj) => {
-    return obj.target === route;
+    return obj.target === route || obj.target === '*';
   });
 };
 
@@ -196,7 +196,7 @@ function parseExtraRoutes(name, config) {
  */
 function parseMiddleware(config) {
   for(const i in config) {
-    if(config[i].target === '*') {
+    if(config[i].target === 'init') {
       for(const j in config[i].action) {
         let controller = config[i].action[j], action = null;
         if(config[i].action[j].indexOf('#') !== -1) {
@@ -212,6 +212,10 @@ function parseMiddleware(config) {
             action: action,
           }
         });
+      }
+    } else if(config[i].target === '*') {
+      for(const j in config[i].action) {
+        extractMiddleware(config[i].action[j], ['*']);
       }
     }
     else {
