@@ -152,7 +152,13 @@ function parseRoute(parentRoute, config) {
   }
 
   Object.keys(config).map((key) => {
-    if(configuration.METHODS.indexOf(key.toUpperCase()) !== -1) {
+    if(key.startsWith('_')) {
+      parseExtraRoutes(key, [{
+        target: [parentRoute],
+        action: config[key]
+      }]);
+    }
+    else if(configuration.METHODS.indexOf(key.toUpperCase()) !== -1) {
       Routes.push(extractRoute(parentRoute, key, config));
     }
     else if(key.startsWith('/')) {
