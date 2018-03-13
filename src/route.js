@@ -12,6 +12,7 @@ const MiddleWares = [];
 const GlobalMiddleWares = [];
 const ViewEngine = [];
 const ErrorsHandler = [];
+const Services = [];
 
 const path = {
   errorHandler: null,
@@ -45,6 +46,10 @@ module.exports.routes = (_type) => {
     return ErrorsHandler.filter((obj) => {
       return obj.generated;
     });
+  } else if(type === 'services') {
+    return Services.filter((obj) => {
+      return obj.generated;
+    });
   }
 };
 
@@ -55,6 +60,12 @@ module.exports.middleware = (route) => {
 
   return MiddleWares.filter((obj) => {
     return obj.target === route || obj.target === '*';
+  });
+};
+
+module.exports.service = (route) => {
+  return Services.filter((obj) => {
+    return obj.generated && obj.target === route;
   });
 };
 
@@ -104,6 +115,7 @@ module.exports.extractRoutesAndGenerate = (config) => {
   path.errorHandler = config.errorHandler || null;
   path.middlewares = config.middlewares || null;
   path.controllers = config.controllers || null;
+  path.services = config.services || null;
 
   let routes = null;
   if(typeof config.routes === 'object') {
@@ -193,6 +205,8 @@ function parseExtraRoutes(name, config) {
     parseMiddleware(config);
   } else if(name === '_views') {
     parseViews(config);
+  } else if(name === '_services') {
+    parseService(config);
   }
 }
 
@@ -296,6 +310,19 @@ function parseViews(config) {
       engine: config[i].engine,
       controller: config[i].target,
     });
+  }
+}
+
+function parseService(config) {
+  for(const i in config) {
+    for(const p in config[i].target) {
+      for(const j in config[i].action) {
+        Services.push({
+          target: config[i].target[p],
+          name: config[i].action[j],
+        });
+      }
+    }
   }
 }
 
@@ -436,6 +463,10 @@ function generate() {
   for(const i in ErrorsHandler) {
     ErrorsHandler[i] = generateController(path.errorHandler, ErrorsHandler[i]);
   }
+
+  for(const i in Services) {
+    Services[i] = generateService(path.services, Services[i]);
+  }
 }
 
 /**
@@ -457,6 +488,28 @@ function generateController(_path, config) {
   return config;
 }
 
+/**
+ * @param _path
+ * @param config
+ */
+function generateService(_path, config) {
+  if(_path !== null) {
+    for(const i in _path) {
+      if(_path[i].name === config.name) {
+        return {
+          name: _path[i].name,
+          target: config.target,
+          service: _path[i].service,
+          generated: true,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  return null;
+}
 
 /**
  * @param _controller

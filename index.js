@@ -19,6 +19,10 @@ module.exports = function(_app) {
   return module.exports;
 };
 
+module.exports.enableDebug = () => {
+  isDebug = true;
+};
+
 /**
  * Initialize routes
  * @param routesConfig
@@ -59,6 +63,28 @@ module.exports.route = (routesConfig) => {
         } else {
           app.use(middleware[j].target, middleware[j].action);
         }
+      }
+
+      const services = Route.service(routes[i].route);
+      for(const i in services) {
+        app.use(services[i].target, async(req, res, next) => {
+            if(req.services) {
+              if(Promise.resolve(services[i].service) === services[i].service) {
+                req.services[services[i].name] = await services[i].service;
+              } else {
+                req.services[services[i].name] = services[i].service;
+              }
+
+            } else {
+              if(Promise.resolve(services[i].service) === services[i].service) {
+                req.services = {[services[i].name]: await services[i].service};
+              } else {
+                req.services = {[services[i].name]: services[i].service};
+              }
+            }
+
+            next();
+        });
       }
       app[routes[i].method](routes[i].route, routes[i].action);
     }
