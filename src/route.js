@@ -53,13 +53,17 @@ module.exports.routes = (_type) => {
   }
 };
 
-module.exports.middleware = (route) => {
+module.exports.middleware = (route, type) => {
   if(route === 'init') {
     return GlobalMiddleWares;
   }
 
   return MiddleWares.filter((obj) => {
-    return obj.target === route || obj.target === '*';
+    let isOk = false;
+    if(type && type === obj.type) {
+      isOk = true;
+    }
+    return isOk && (obj.target === route || obj.target === '*');
   });
 };
 
@@ -239,8 +243,9 @@ function parseMiddleware(config) {
       }
     }
     else {
+
       for(const j in config[i].action) {
-        extractMiddleware(config[i].action[j], config[i].target);
+        extractMiddleware(config[i].action[j], config[i].target, config[i]);
       }
     }
   }
@@ -404,8 +409,9 @@ function extractRouteFromString(route, method, config) {
  * Extract middleware
  * @param name
  * @param targets
+ * @param config
  */
-function extractMiddleware(name, targets) {
+function extractMiddleware(name, targets, config) {
   for(const i in targets) {
     if(name.indexOf('#') !== -1) {
       const [controller, action] = name.split('#');
@@ -413,11 +419,13 @@ function extractMiddleware(name, targets) {
         target: targets[i],
         controller,
         action,
+        type: config && config.type ? config.type : 'use'
       });
     } else {
       MiddleWares.push({
         target: targets[i],
         controller: name,
+        type: config && config.type ? config.type : 'use'
       });
     }
   }

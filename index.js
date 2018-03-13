@@ -56,7 +56,7 @@ module.exports.route = (routesConfig) => {
 
     const routes = Route.routes();
     for(const i in routes) {
-      const middleware = Route.middleware(routes[i].route);
+      const middleware = Route.middleware(routes[i].route, 'use');
       for(const j in middleware) {
         if(middleware[j].target === '*') {
           app.use(routes[i].route, middleware[j].action);
@@ -86,7 +86,13 @@ module.exports.route = (routesConfig) => {
             next();
         });
       }
-      app[routes[i].method](routes[i].route, routes[i].action);
+
+      const middlewaresInjected = Route.middleware(routes[i].route, 'inject');
+      if(middlewaresInjected.length > 0) {
+        app[routes[i].method](routes[i].route, middlewaresInjected[0].action, routes[i].action);
+      } else {
+        app[routes[i].method](routes[i].route, routes[i].action);
+      }
     }
 
     app.use(errorHandler);
