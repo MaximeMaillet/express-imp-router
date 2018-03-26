@@ -1,0 +1,16 @@
+{
+  "_middlewares": [
+    {"target": "init", "action": ["session#bodyParser", "session#urlencoded"]},
+    {"target": "*", "action": ["pow#test"]},
+    {"target": "/sessions", "action": ["session#create"]}
+  ],
+  "/middleware/:number": {
+    "get": "MiddlewaresController#test"
+  },
+  "/other/:number": {
+    "get": "MiddlewaresController#test"
+  },
+  "/sessions": {
+    "post": "MiddlewaresController#createSession"
+  }
+}

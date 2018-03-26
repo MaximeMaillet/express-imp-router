@@ -5,6 +5,8 @@ const colors = require('colors');
 const emoji = require('node-emoji');
 const httpWell = require('know-your-http-well'), phraseWell = httpWell.statusCodesToPhrases;
 
+const extractHeaders = require('./extract/headers');
+
 const Routes = [];
 const ErrorRoutes = [];
 const StaticRoutes = [];
@@ -211,6 +213,8 @@ function parseExtraRoutes(name, config) {
     parseViews(config);
   } else if(name === '_services') {
     parseService(config);
+  } else if(name === '_headers') {
+    extractHeaders(name, config);
   }
 }
 
@@ -345,16 +349,24 @@ function extractRouteFromConfig(route, config) {
   let controller = null, action = null, dController = null, dAction = null;
   let generated = false;
 
-  if(typeof config.controller === 'string') {
-    [controller, action] = config.controller.split('#');
-    dController = controller;
-    dAction = action;
-  } else if(typeof config.controller === 'function') {
+  if(typeof config.controller === 'function') {
     action = config.controller;
     dController = 'Anonymous';
     dAction = 'N/A';
     generated = true;
-  } else {
+  }
+  else if(typeof config.controller === 'string') {
+
+    if(config.controller.indexOf('#') !== -1) {
+      [controller, action] = config.controller.split('#');
+      dController = controller;
+      dAction = action;
+    } else {
+      controller = dController = config.controller;
+      action = dAction = config.action;
+    }
+  }
+  else {
     throw new Error(`Controller malformed. String or function expected, ${typeof config.controller} givent.`);
   }
 

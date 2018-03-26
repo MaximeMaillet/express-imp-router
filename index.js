@@ -116,6 +116,10 @@ module.exports.route = (routesConfig) => {
  * @param routesConfig
  */
 function readRoutesConfiguration(routesConfig) {
+  if(!Array.isArray(routesConfig)) {
+    throw new Error('Config must be an array');
+  }
+
   for(const i in routesConfig) {
     const config = configuration(routesConfig[i]);
     Route.extractRoutesAndGenerate(config);

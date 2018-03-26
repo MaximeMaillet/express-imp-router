@@ -1,0 +1,11 @@
+{
+  "/simple": {
+    "get": "SimpleController#simple"
+  },
+  "/complexe": {
+    "get": {
+      "controller": "SimpleController",
+      "action": "simple2"
+    }
+  }
+}
