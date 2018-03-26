@@ -12,5 +12,16 @@
   },
   "/sessions": {
     "post": "MiddlewaresController#createSession"
+  },
+  "/started/:number": {
+    "_middlewares": ["started#test"],
+    "get": "MiddlewaresController#started"
+  },
+  "/target/:number": {
+    "get": {
+      "controller": "MiddlewaresController",
+      "action": "target",
+      "_middlewares": ["target#test"]
+    }
   }
 }

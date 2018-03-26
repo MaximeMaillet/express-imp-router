@@ -6,6 +6,7 @@ const emoji = require('node-emoji');
 const httpWell = require('know-your-http-well'), phraseWell = httpWell.statusCodesToPhrases;
 
 const extractHeaders = require('./extract/headers');
+const extractRoutes = require('./extract/routes');
 
 const Routes = [];
 const ErrorRoutes = [];
@@ -142,7 +143,7 @@ function extract(routes) {
   Object.keys(routes).map((route) => {
     try {
       if(typeof route !== 'string') {
-        throw new Error('Route should be a string');
+        throw new Error(`Route should be a string. ${typeof route} founded`);
       }
 
       if(route.startsWith('/')) {
@@ -183,18 +184,41 @@ function parseRoute(parentRoute, config) {
       parseRoute(parentRoute+key, config[key]);
     }
     else {
-      throw new Error(`Syntax malformed : (${parentRoute})`);
+      throw new Error(`Syntax malformed for route ${parentRoute}. Expected method, other route or extra. ${key} (${typeof key}) founded`);
     }
   });
 }
 
+/**
+ * @param parentRoute
+ * @param key
+ * @param config
+ * @return {*}
+ */
 function extractRoute(parentRoute, key, config) {
   if(typeof config[key] === 'object') {
-    return extractRouteFromConfig(parentRoute, Object.assign({method: key}, config[key]));
+    config = Object.assign(
+      {method: key},
+      config[key]
+    );
+    const route = extractRoutes.fromObject(parentRoute, config);
+
+    Object.keys(route).forEach((key) => {
+      if(key.startsWith('_')) {
+        parseExtraRoutes(key, [{
+          target: [parentRoute],
+          action: route[key]
+        }]);
+      }
+    });
+
+    return route;
   } else if(typeof config[key] === 'string') {
-    return extractRouteFromString(parentRoute, key, config);
+    return extractRoutes.fromString(parentRoute, key, config[key]);
+  } else if(typeof config[key] === 'function') {
+    return extractRoutes.fromFunction(parentRoute, key, config[key]);
   } else {
-    throw new Error(`Syntax malformed : ${parentRoute}`);
+    throw new Error(`Syntax malformed : ${parentRoute}, should be an object, string or function. ${typeof config[key]} founded`);
   }
 }
 
@@ -217,6 +241,12 @@ function parseExtraRoutes(name, config) {
     extractHeaders(name, config);
   }
 }
+
+
+
+
+
+
 
 /**
  * Parse middlewares
@@ -336,6 +366,7 @@ function parseService(config) {
 }
 
 /**
+ * @deprecated
  * Generate route with configuration
  * @param route
  * @param config
@@ -343,7 +374,7 @@ function parseService(config) {
  */
 function extractRouteFromConfig(route, config) {
   if(!config.controller) {
-    throw new Error('Controller is missing');
+    throw new Error(`Controller is missing for route : ${route}`);
   }
 
   let controller = null, action = null, dController = null, dAction = null;
@@ -395,6 +426,7 @@ function extractRouteFromConfig(route, config) {
 }
 
 /**
+ * @deprecated
  * Generate route from string, whitout configuration
  * @param route
  * @param method
@@ -469,7 +501,9 @@ function extractErrorHandler(target, name) {
  */
 function generate() {
   for(const i in Routes) {
-    Routes[i] = generateController(path.controllers, Routes[i]);
+    if(!Routes[i].generated) {
+      Routes[i] = generateController(path.controllers, Routes[i]);
+    }
   }
 
   for(const i in MiddleWares) {
@@ -556,7 +590,7 @@ function getAction(_controller, _action) {
     action = controller[_action];
 
     if(typeof action !== 'function') {
-      throw new Error(`${controller}#${action} is not a function`);
+      throw new Error(`${_action} is not a function`);
     }
 
     return action;

@@ -14,7 +14,21 @@ async function createSession(req, res) {
   }
 }
 
+async function target(req, res) {
+  res.send({
+    result: req.target.test,
+  });
+}
+
+async function started(req, res) {
+  res.send({
+    result: req.started.test,
+  });
+}
+
 module.exports = {
   test,
   createSession,
+  target,
+  started,
 };

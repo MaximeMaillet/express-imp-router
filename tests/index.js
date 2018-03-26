@@ -11,5 +11,5 @@ module.exports.startServer = async(port, config) => {
   return {app, server};
 };
 
-// require('./simple/index');
+require('./routes/index');
 require('./middlewares/index');

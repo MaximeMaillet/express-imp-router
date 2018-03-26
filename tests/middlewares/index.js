@@ -16,7 +16,7 @@ const config = [{
 let app = null;
 let server = null;
 
-describe('Check middlewares', () => {
+describe('Generate middlewares', () => {
 
   before((done) => {
     utils.startServer(port, config)
@@ -34,8 +34,7 @@ describe('Check middlewares', () => {
     done();
   });
 
-
-  describe('Check middleware for all target', () => {
+  describe('For all target', () => {
     it('Should return 2 pow of 1', (done) => {
       chai
       .request(app)
@@ -97,7 +96,7 @@ describe('Check middlewares', () => {
     });
   });
 
-  describe('Check middleware for one target', () => {
+  describe('For one target', () => {
     it('Should return status 401', (done) => {
       chai
       .request(app)
@@ -127,15 +126,67 @@ describe('Check middlewares', () => {
     });
   });
 
-  describe('Check middleware include in started route', () => {
+  describe('Include in started route', () => {
+    it('Should return status 200 with result = 2', (done) => {
+      chai
+        .request(app)
+        .get('/started/2')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.have.property('result');
+          expect(res.body.result).to.equal(2);
+          done();
+        })
+      ;
+    });
 
+    it('Should return status 200 with result = 4', (done) => {
+      chai
+        .request(app)
+        .get('/started/4')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.have.property('result');
+          expect(res.body.result).to.equal(4);
+          done();
+        })
+      ;
+    });
   });
 
-  describe('Check middleware include in target route', () => {
+  describe('Include in target route', () => {
+    it('Should return status 200 with result = 2', (done) => {
+      chai
+        .request(app)
+        .get('/target/2')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.have.property('result');
+          expect(res.body.result).to.equal(2);
+          done();
+        })
+      ;
+    });
 
-  });
-
-  describe('Check middleware in init (app.use)', () => {
-
+    it('Should return status 200 with result = 4', (done) => {
+      chai
+        .request(app)
+        .get('/target/4')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body).to.be.an('object');
+          expect(res.body).to.have.property('result');
+          expect(res.body.result).to.equal(4);
+          done();
+        })
+      ;
+    });
   });
 });
