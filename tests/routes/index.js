@@ -56,7 +56,7 @@ const config = [{
       '/secondWithFunction': {
         '/withObject': {
           get: {
-            action: async (req, res) => {
+            action: async(req, res) => {
               res.status(204).send();
             },
           }
@@ -65,6 +65,58 @@ const config = [{
           get: (req, res) => {
             res.status(204).send();
           }
+        }
+      }
+    },
+    '/method': {
+      '/all': {
+        all: (req, res) => {
+          res.send({});
+        }
+      },
+      '/get': {
+        get: (req, res) => {
+          res.send({});
+        }
+      },
+      '/post': {
+        post: (req, res) => {
+          res.send({});
+        }
+      },
+      '/patch': {
+        patch: (req, res) => {
+          res.send({});
+        }
+      },
+      '/put': {
+        put: (req, res) => {
+          res.send({});
+        }
+      },
+      '/delete': {
+        delete: (req, res) => {
+          res.send({});
+        }
+      },
+      '/options': {
+        options: (req, res) => {
+          res.send({});
+        }
+      },
+      '/head': {
+        head: (req, res) => {
+          res.send({});
+        }
+      },
+      '/connect': {
+        connect: (req, res) => {
+          res.send({});
+        }
+      },
+      '/trace': {
+        trace: (req, res) => {
+          res.send({});
         }
       }
     }
@@ -234,6 +286,117 @@ describe('Generate routes', () => {
           expect(res.headers['content-length']).to.equal('26');
           expect(res.headers).to.have.property('content-type');
           expect(res.headers['content-type']).to.equal('text/css; charset=UTF-8');
+          done();
+        })
+      ;
+    });
+  });
+
+  describe('With different method', () => {
+
+    it('with get return OK', (done) => {
+      chai
+        .request(app)
+        .get('/method/get')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        })
+      ;
+    });
+
+    it('with post return OK', (done) => {
+      chai
+        .request(app)
+        .post('/method/post')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        })
+      ;
+    });
+
+    it('with patch return OK', (done) => {
+      chai
+        .request(app)
+        .patch('/method/patch')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        })
+      ;
+    });
+
+    it('with put return OK', (done) => {
+      chai
+        .request(app)
+        .put('/method/put')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        })
+      ;
+    });
+
+    it('with delete return OK', (done) => {
+      chai
+        .request(app)
+        .delete('/method/delete')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        })
+      ;
+    });
+
+    it('with head return OK', (done) => {
+      chai
+        .request(app)
+        .head('/method/head')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        })
+      ;
+    });
+    // @todo
+    // it('with connect return OK', (done) => {
+    //   chai
+    //     .request(app)
+    //     .connect('/method/connect')
+    //     .end((err, res) => {
+    //       expect(err).to.be.null;
+    //       expect(res).to.have.status(200);
+    //       done();
+    //     })
+    //   ;
+    // });
+
+    it('with options return OK', (done) => {
+      chai
+        .request(app)
+        .options('/method/options')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        })
+      ;
+    });
+
+    it('with trace return OK', (done) => {
+      chai
+        .request(app)
+        .trace('/method/trace')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
           done();
         })
       ;

@@ -7,6 +7,7 @@ const httpWell = require('know-your-http-well'), phraseWell = httpWell.statusCod
 
 const extractHeaders = require('./extract/headers');
 const extractRoutes = require('./extract/routes');
+const extractMiddlewares = require('./extract/middlewares');
 
 const Routes = [];
 const ErrorRoutes = [];
@@ -173,7 +174,7 @@ function parseRoute(parentRoute, config) {
   Object.keys(config).map((key) => {
     if(key.startsWith('_')) {
       parseExtraRoutes(key, [{
-        target: [parentRoute],
+        target: parentRoute,
         action: config[key]
       }]);
     }
@@ -206,7 +207,7 @@ function extractRoute(parentRoute, key, config) {
     Object.keys(route).forEach((key) => {
       if(key.startsWith('_')) {
         parseExtraRoutes(key, [{
-          target: [parentRoute],
+          target: parentRoute,
           action: route[key]
         }]);
       }
@@ -255,31 +256,14 @@ function parseExtraRoutes(name, config) {
 function parseMiddleware(config) {
   for(const i in config) {
     if(config[i].target === 'init') {
-      for(const j in config[i].action) {
-        let controller = config[i].action[j], action = null;
-        if(config[i].action[j].indexOf('#') !== -1) {
-          [controller, action] = config[i].action[j].split('#');
-        }
-
-        GlobalMiddleWares.push({
-          controller,
-          action,
-          debug: {
-            target: 'all',
-            controller: config[i].action[j],
-            action: action,
-          }
-        });
+      const middlewares = extractMiddlewares.fromArray(config[i].action);
+      for(const j in middlewares) {
+        GlobalMiddleWares.push(middlewares[j]);
       }
-    } else if(config[i].target === '*') {
-      for(const j in config[i].action) {
-        extractMiddleware(config[i].action[j], ['*']);
-      }
-    }
-    else {
-
-      for(const j in config[i].action) {
-        extractMiddleware(config[i].action[j], config[i].target, config[i]);
+    } else {
+      const middlewares = extractMiddlewares.fromArrayForRoute(config[i].target, config[i].action);
+      for(const j in middlewares) {
+        MiddleWares.push(middlewares[j]);
       }
     }
   }
@@ -402,6 +386,7 @@ function extractRouteFromConfig(route, config) {
   }
 
   if(config.middlewares) {
+    console.log(config);
     for(const i in config.middlewares) {
       extractMiddleware(config.middlewares[i], [route]);
     }
@@ -450,6 +435,7 @@ function extractRouteFromString(route, method, config) {
 }
 
 /**
+ * @deprecated
  * Extract middleware
  * @param name
  * @param targets

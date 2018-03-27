@@ -11,5 +11,9 @@ module.exports.startServer = async(port, config) => {
   return {app, server};
 };
 
-require('./routes/index');
-// require('./middlewares/index');
+// require('./routes/index');
+require('./middlewares/index');
+// require('./services/index');
+// require('./errorHandlers/index');
+// view engine
+
