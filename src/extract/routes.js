@@ -14,7 +14,7 @@ function fromString(route, method, config) {
 }
 
 function fromObject(route, config) {
-  if(!config.controller) {
+  if(!config.controller && !config.action) {
     throw new Error(`Controller is missing for route : ${route}`);
   }
 
@@ -38,6 +38,12 @@ function fromObject(route, config) {
       fController = dController = controller;
       fAction = dAction = action;
     }
+  }
+  else if(typeof action === 'function') {
+    fController = null;
+    fAction = action;
+    dController = 'Anonymous';
+    generated = true;
   }
   else {
     throw new Error(`Controller malformed. String or function expected, ${typeof controller} given.`);

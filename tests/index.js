@@ -12,4 +12,4 @@ module.exports.startServer = async(port, config) => {
 };
 
 require('./routes/index');
-require('./middlewares/index');
+// require('./middlewares/index');

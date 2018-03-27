@@ -2,63 +2,20 @@
 
 Router for Express.JS
 
-Create your routes file in JSON and redirect to controllers.
-
-## Todo
-
-* Find controller directory by itself
-* Done test
-* Handle own errors
-* Renvoyer les erreurs provenant des middlewares
-
-## Releases 0.2.0
-
-* Generate static routes
-* Generate route from json object
-* Add tests
-* Middleware
-
-## Releases 0.1.0
-
-* Generate routes from json file
-* Generate erros route with error handler 
-
-
-```json
-"/route": {
-  "method": {
-    "controller",
-    "errorHandler",
-    "middleware"
-  }
-}
-```
-
-```json
-"/route": {
-  "method": "controller#action"
-}
-```
-
-```json
-"/route": {
-  "method": (req, res, next) => {
-    // todo
-  }
-}
-```
-
+Create your routes file in JSON and redirect each route to controllers.
+You can inject middlewares, services and errors handler.
+You can configure view engine rendering and give static files.
 
 ## Installation
 
 ```bash
-npm install express-imp-router --save
+npm i express-imp-router --save
 ```
 
 ## Usage
 
+*./index.js*
 ```javascript
-
 const express = require('express');
 const router = require('express-imp-router');
 
@@ -67,10 +24,95 @@ router(app);
 
 router.route([
   {
-    routes: `${__dirname}/routes.json`,
-    controllers: `${__dirname}/controllers`
+    routes: './routes.json',
+    controllers: '/controllers'
   }
 ]);
 
 app.listen(6060);
 ```
+
+*./routes.json*
+```json
+{
+  "/articles": {
+    "get": "ArticleController#getAll",
+    "post": {
+      "controller": "ArticleController",
+      "action": "add"
+    },
+    "/:id": {
+      "get": "ArticleController#getOne",
+      "patch": "ArticleController#setOne"
+    }
+  }
+}
+```
+
+*./controllers/ArticleController.js*
+
+```javascript
+module.exports = {
+  getOne: (req, res) => {
+    const id = req.params.id;
+    //...
+  },
+  getAll: (req, res) => {
+    //...
+  },
+  add: (req, res) => {
+    // ...
+  },
+  setOne: (req, res) => {
+    const id = req.params.id;
+    // ...
+  }
+}
+```
+
+## How to declare route
+
+*From string*
+```json
+{
+  "/route": {
+    "get": "MyController#get"
+  }
+}
+```
+
+*From object*
+```json
+{
+  "/route": {
+    "get": {
+      "controller": "MyController",
+      "action": "get"
+    }
+  }
+}
+```
+
+*From function*
+```javascript
+const routes = {
+  '/route': {
+    get: {
+      action: (req, res) => {
+        // ...
+      }
+    }
+  },
+  '/route2': {
+    get: (req, res) => {
+      // ...
+    }
+  }
+}
+```
+
+## How to declare extra
+
+*Extra are services and middlewares*
+
+... todo
