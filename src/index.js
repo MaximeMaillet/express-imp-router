@@ -66,23 +66,10 @@ module.exports.route = (routesConfig) => {
       }
 
       const services = Route.service(routes[i].route);
-      for(const i in services) {
-        app.use(services[i].target, async(req, res, next) => {
-          if(req.services) {
-            if(Promise.resolve(services[i].service) === services[i].service) {
-              req.services[services[i].name] = await services[i].service;
-            } else {
-              req.services[services[i].name] = services[i].service;
-            }
-
-          } else {
-            if(Promise.resolve(services[i].service) === services[i].service) {
-              req.services = {[services[i].name]: await services[i].service};
-            } else {
-              req.services = {[services[i].name]: services[i].service};
-            }
-          }
-
+      for(const s in services) {
+        const service = {[services[s].name]: services[s].service};
+        app.use(routes[i].route, async(req, res, next) => {
+          req.services = service;
           next();
         });
       }
@@ -230,7 +217,7 @@ function errorHandler(err, req, res, next) {
     return redirect(errorRoute[0], req, res, next, err);
   } else {
     app.set('view engine', 'ejs');
-    res.status(500).render(`${__dirname}/src/assets/errors.ejs`, {
+    res.status(500).render(`${__dirname}/assets/errors.ejs`, {
       status: 500,
       message: err.message
     });

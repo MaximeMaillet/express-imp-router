@@ -8,6 +8,7 @@ const httpWell = require('know-your-http-well'), phraseWell = httpWell.statusCod
 const extractHeaders = require('./extract/headers');
 const extractRoutes = require('./extract/routes');
 const extractMiddlewares = require('./extract/middlewares');
+const extractServices = require('./extract/services');
 
 const Routes = [];
 const ErrorRoutes = [];
@@ -16,7 +17,7 @@ const MiddleWares = [];
 const GlobalMiddleWares = [];
 const ViewEngine = [];
 const ErrorsHandler = [];
-const Services = [];
+let Services = [];
 
 const path = {
   errorHandler: null,
@@ -73,7 +74,7 @@ module.exports.middleware = (route, type) => {
 
 module.exports.service = (route) => {
   return Services.filter((obj) => {
-    return obj.generated && obj.target === route;
+    return obj.generated && obj.target.test(route);
   });
 };
 
@@ -151,6 +152,7 @@ function extract(routes) {
         parseRoute(route, routes[route]);
       }
       else if(route.startsWith('_')) {
+        // extra global
         parseExtraRoutes(route, routes[route]);
       }
 
@@ -174,7 +176,7 @@ function parseRoute(parentRoute, config) {
   Object.keys(config).map((key) => {
     if(key.startsWith('_')) {
       parseExtraRoutes(key, [{
-        target: parentRoute,
+        target: new RegExp(`^\\${parentRoute}/*`),
         action: config[key]
       }]);
     }
@@ -237,7 +239,7 @@ function parseExtraRoutes(name, config) {
   } else if(name === '_views') {
     parseViews(config);
   } else if(name === '_services') {
-    parseService(config);
+    Services = Services.concat(extractServices.extract(config));
   } else if(name === '_headers') {
     extractHeaders(name, config);
   }
@@ -337,16 +339,18 @@ function parseViews(config) {
 }
 
 function parseService(config) {
-  for(const i in config) {
-    for(const p in config[i].target) {
-      for(const j in config[i].action) {
-        Services.push({
-          target: config[i].target[p],
-          name: config[i].action[j],
-        });
-      }
-    }
-  }
+
+
+  // for(const i in config) {
+  //   for(const p in config[i].target) {
+  //     for(const j in config[i].action) {
+  //       Services.push({
+  //         target: config[i].target[p],
+  //         name: config[i].action[j],
+  //       });
+  //     }
+  //   }
+  // }
 }
 
 /**
@@ -386,7 +390,6 @@ function extractRouteFromConfig(route, config) {
   }
 
   if(config.middlewares) {
-    console.log(config);
     for(const i in config.middlewares) {
       extractMiddleware(config.middlewares[i], [route]);
     }
@@ -545,7 +548,7 @@ function generateService(_path, config) {
       }
     }
 
-    return null;
+    throw new Error(`Service is not instanciated : ${config.name}`);
   }
 
   return null;
