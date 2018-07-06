@@ -1,6 +1,6 @@
 {
   "name": "express-imp-router",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Router for express.JS",
   "main": "index.js",
   "scripts": {
