@@ -1,4 +1,3 @@
-const debug = require('debug')('ExpressImpRouter.index');
 const path = require('path');
 const express = require('express');
 const Route = require('./route');
@@ -108,7 +107,6 @@ module.exports.route = (routesConfig) => {
     return Route.routes('user');
   } catch(e) {
     console.log(e);
-    debug(e.message);
   }
 };
 
@@ -117,7 +115,7 @@ module.exports.route = (routesConfig) => {
  */
 function readRoutesConfiguration(routesConfig) {
   if(!Array.isArray(routesConfig)) {
-    throw new Error('Config must be an array');
+    routesConfig = [routesConfig];
   }
 
   for(const i in routesConfig) {
@@ -131,8 +129,6 @@ function readRoutesConfiguration(routesConfig) {
  * @return {*}
  */
 function configuration(config) {
-  debug('Read configuration');
-
   if(!config) {
     throw new Error('Config are not defined, please referrer to documentation');
   }
@@ -155,6 +151,10 @@ function configuration(config) {
 
   if(config.middlewares && !config.middlewares.endsWith('/')) {
     config.middlewares += '/';
+  }
+
+  if(config.services && !config.services.endsWith('/')) {
+    config.services += '/';
   }
 
   return config;

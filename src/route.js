@@ -1,9 +1,8 @@
-'use strict';
-const debug = require('debug')('ExpressImpRouter.route');
 const configuration = require('./configuration');
 const colors = require('colors');
 const emoji = require('node-emoji');
 const httpWell = require('know-your-http-well'), phraseWell = httpWell.statusCodesToPhrases;
+const fs = require('fs');
 
 const extractHeaders = require('./extract/headers');
 const extractRoutes = require('./extract/routes');
@@ -139,7 +138,6 @@ module.exports.extractRoutesAndGenerate = (config) => {
  * @param routes
  */
 function extract(routes) {
-  debug('Extract routes');
   Object.keys(routes).map((route) => {
     try {
       if(typeof route !== 'string') {
@@ -156,7 +154,6 @@ function extract(routes) {
     } catch(e) {
       // @todo up error to front
       console.log(e);
-      debug(e.message);
     }
   });
 }
@@ -548,12 +545,13 @@ function generateController(_path, config) {
  */
 function generateService(_path, config) {
   if(_path !== null) {
-    for(const i in _path) {
-      if(_path[i].name === config.name) {
+    const files = fs.readdirSync(_path);
+    for(const i in files) {
+      if(files[i].substr(0, files[i].lastIndexOf('.')) === config.name) {
         return {
-          name: _path[i].name,
+          name: config.name,
           target: config.target,
-          service: _path[i].service,
+          service: require(_path+files[i]),
           generated: true,
         };
       }
@@ -654,7 +652,6 @@ function generateController2(controllers) {
         assignControllerToRoute(controllers, arrayToScan[i][k]);
       } catch(e) {
         console.log(e);
-        debug(e.message);
       }
     }
   }
