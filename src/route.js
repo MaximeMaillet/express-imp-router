@@ -71,7 +71,7 @@ module.exports.middleware = (route, type) => {
 
 module.exports.service = (route) => {
   return Services.filter((obj) => {
-    return obj.generated && obj.target === route;
+    return obj.generated && route.startsWith(obj.target);
   });
 };
 
