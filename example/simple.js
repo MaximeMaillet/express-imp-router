@@ -13,6 +13,12 @@ router.route([
       "/": {
         "get": "HomeController#home"
       },
+      "/public": {
+        "_static_": {
+          "targets": ["example/public", "example/public_bis"],
+          "options": {}
+        }
+      },
       "/one": {
         "get": "NumberController#getOne",
         "post": "NumberController#postOne",

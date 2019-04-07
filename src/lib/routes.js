@@ -64,12 +64,18 @@ function generate() {
   debug('Routes generating : done');
 }
 
+/**
+ * Dedupe routes
+ */
 function dedupe() {
   debug('Start deduping');
   const routeValidated = [];
   let index = -1;
 
   for(let i in routes) {
+    if(routes[i].static) {
+      continue;
+    }
     let strToCompare = routes[i].method+routes[i].route;
     let strToCompareHard = routes[i].method+routes[i].route.replace(/(\(.+\))/gi, '');
 
@@ -97,6 +103,23 @@ function dedupe() {
  */
 function generateRoute(route) {
   if(route.controller === '_ANON_') {
+    if(route.static) {
+      try {
+        route = actionsGenerator.generateStatic(route);
+        route.generated = true;
+        return route;
+      } catch(e) {
+        const message = `"${route.method.toUpperCase()} ${route.route}" is ignored. Reason : ${e.message}`;
+        if(!route.debug.message) {
+          route.debug.message = message;
+        }
+        debug(message);
+        if(isDebug) {
+          console.warn(message);
+        }
+        return route;
+      }
+    }
     route.generated = true;
     return route;
   }
@@ -106,7 +129,9 @@ function generateRoute(route) {
     route.generated = true;
   } catch(e) {
     const message = `"${route.method.toUpperCase()} ${route.route}" is ignored. Reason : ${e.message}`;
-    route.debug.message = message;
+    if(!route.debug.message) {
+      route.debug.message = message;
+    }
     debug(message);
     if(isDebug) {
       console.warn(message);

@@ -1,7 +1,9 @@
 const fs = require('fs');
+const path = require('path');
 
 module.exports = {
   generate,
+  generateStatic,
 };
 
 function findController(path, file) {
@@ -17,6 +19,17 @@ function findController(path, file) {
   }
 
   return null;
+}
+
+function generateStatic(route) {
+  const dirPath = path.resolve('.')+'/'+route.action;
+  if(!fs.existsSync(dirPath)) {
+    throw new Error(`This path does not exists : ${dirPath}`);
+  }
+
+  route.action = dirPath;
+  route.debug.action = dirPath;
+  return route;
 }
 
 function generate(route) {

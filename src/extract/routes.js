@@ -1,5 +1,4 @@
 const debug = require('debug')('ExpressImpRouter.routes.extract');
-
 const methods = require('../config/methods');
 
 function fromString(route, method, config) {
@@ -80,6 +79,25 @@ function fromFunction(route, method, _function) {
   };
 }
 
+function forStatic(route, config) {
+  const statics = [];
+  for(let i in config.targets) {
+    statics.push({
+      route,
+      method: 'GET',
+      controller: '_ANON_',
+      action: config.targets[i],
+      static: true,
+      generated: false,
+      debug: {
+        controller: '_ANON_',
+        action: config.target,
+      }
+    });
+  }
+  return statics;
+}
+
 function isMethod(key) {
   return methods.indexOf(key.toUpperCase()) !== -1;
 }
@@ -90,6 +108,10 @@ function isUrl(key) {
 
 function isString(key) {
   return typeof key === 'string';
+}
+
+function isStatic(key) {
+  return typeof key === 'string' && key === '_static_';
 }
 
 function isFunction(key) {
@@ -126,11 +148,28 @@ function extract(name, config) {
         routes.push(fromFunction(name, key, config[key]));
       } else {
         debug(`Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config[key]} founded`)
+        routes.push({
+          route: name,
+          method: 'N/A',
+          debug: {
+            message: `Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config[key]} founded`
+          }
+        });
+        console.log(routes);
       }
+    } else if(isStatic(key)) {
+      routes = routes.concat(forStatic(name, config[key]));
     } else if(isUrl(key)) {
       routes = routes.concat(extract(name+key, config[key]));
     } else {
       debug(`Routes config malformed. "${name} > ${key}" is ignored`)
+      routes.push({
+        route: name,
+        method: 'N/A',
+        debug: {
+          message: `Routes config malformed. "${name} > ${key}" is ignored`
+        }
+      });
     }
   });
 
@@ -160,6 +199,14 @@ function route(mainConfig, routesConfig, isDebug) {
   Object.keys(routesConfig).map((route) => {
     if(route.startsWith('/')) {
       routes = routes.concat(extract(route, routesConfig[route]));
+    } else {
+      routes.push({
+        route,
+        method: 'N/A',
+        debug: {
+          message: 'Syntaxe malformed, route should starts with "/"'
+        }
+      })
     }
   });
 

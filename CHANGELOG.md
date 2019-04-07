@@ -21,12 +21,12 @@
 
 * Default handler for error like not found or errors throwed by user
 
-#### To release
+* Static routes with *_static_* as method
 
-* Static routes
+#### To release
 
 * Handle middlewares & services
 
-* Error handler for user
+* Error handler for user + view engine
 
 * Test
