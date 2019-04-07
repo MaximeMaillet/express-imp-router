@@ -18,41 +18,36 @@ function get(debug) {
   if(!debug) {
     return routes.filter(route => route.generated);
   } else {
-    const emoji = require('node-emoji');
+    const colors = require('colors');
     return routes.map((obj) => {
-      let status = null, {message} = obj;
+      let color = colors.white, status = '';
 
-      if(obj.generated) {
-        status = `${emoji.get(':white_check_mark:')}  Route generated : `.green;
-        message = 'N/A';
+      colors.setTheme({
+        warn: 'yellow',
+        error: 'red'
+      });
+
+      if(!obj.generated) {
+        color = colors.red;
+        status = 'Route not generated';
       } else {
-        status = `${emoji.get(':x:')}  Route not generated : `.red;
+        color = colors.green;
+        status = `Route generated :`;
+        if(obj.debug.level) {
+          color = colors[obj.debug.level];
+        }
       }
 
       return {
-        status,
-        method: obj.method.toUpperCase(),
-        route: obj.route,
-        controller: obj.debug.controller,
-        action: obj.debug.action,
-        message
+        status: color(status),
+        method: color(obj.method.toUpperCase()),
+        route: color(obj.route),
+        controller: color(obj.debug.controller ? obj.debug.controller : 'N/A'),
+        action: color(obj.debug.action ? obj.debug.action : 'N/A'),
+        message: color(obj.debug.message ? obj.debug.message : 'N/A'),
       };
     });
   }
-  // const newRoutes = [];
-  // for(let i in routes) {
-  //   if(!newRoutes[routes[i].route]) {
-  //     newRoutes[routes[i].route] = [];
-  //   }
-  //
-  //   newRoutes[routes[i].route].push(routes[i]);
-  // }
-  //
-  // for(let i in newRoutes) {
-  //   newRoutes[i] = newRoutes[i].filter(route => route.generated);
-  // }
-  //
-  // return newRoutes;
 }
 
 /**
@@ -63,7 +58,37 @@ function generate() {
   for(let i in routes) {
     generateRoute(routes[i]);
   }
+
+  dedupe();
+
   debug('Routes generating : done');
+}
+
+function dedupe() {
+  debug('Start deduping');
+  const routeValidated = [];
+  let index = -1;
+
+  for(let i in routes) {
+    let strToCompare = routes[i].method+routes[i].route;
+    let strToCompareHard = routes[i].method+routes[i].route.replace(/(\(.+\))/gi, '');
+
+    if((index = routeValidated.indexOf(strToCompare)) !== -1) {
+      routes[i].debug.message = `This route already exists : ${routes[i].method.toUpperCase()} ${routes[i].route}`;
+      routes[i].debug.level = 'error';
+      routes[i].generated = false;
+    } else {
+      if((index = routeValidated.indexOf(strToCompareHard)) !== -1) {
+        routes[i].debug.message = `Maybe there is similar route : ${routes[i].method.toUpperCase()} ${routes[i].route} :: ${routeValidated[index].replace(/([a-z]+)(\/.+)/, '$1').toUpperCase()} ${routeValidated[index].replace(/([a-z]+)(\/.+)/, '$2')}`;
+        routes[i].debug.level = 'warn';
+        routes[i].generated = true;
+      }
+
+      routeValidated.push(routes[i].method+routes[i].route);
+    }
+  }
+
+  debug('Deduping : done');
 }
 
 /**
@@ -81,6 +106,7 @@ function generateRoute(route) {
     route.generated = true;
   } catch(e) {
     const message = `"${route.method.toUpperCase()} ${route.route}" is ignored. Reason : ${e.message}`;
+    route.debug.message = message;
     debug(message);
     if(isDebug) {
       console.warn(message);

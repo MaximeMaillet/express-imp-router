@@ -34,6 +34,9 @@ router.route([
       },
       "/five/six": {
         "get": "NumberController#getFiveSix"
+      },
+      "/params/:id": {
+        "get": "HomeController#getParams"
       }
     }
   },

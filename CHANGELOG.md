@@ -15,9 +15,12 @@
        
 * Fix vulnerability dependencies
 
+* Multiple configurations
+
+* Deduping + deduping with parameters
+
 #### To release
 
-* Multiple configurations
 
 * Default handler for error like not found or errors throwed by user
 

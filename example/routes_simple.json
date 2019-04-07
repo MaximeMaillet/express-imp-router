@@ -1,1 +1,8 @@
-{}
+{
+  "/home": {
+    "get": "HomeControllerBis#home"
+  },
+  "/params/:id([0-9]+)": {
+    "get": "HomeControllerBis#getParams"
+  }
+}
