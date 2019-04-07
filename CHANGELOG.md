@@ -1,5 +1,8 @@
 ## Releases 0.3.0 - Refacto
 
+
+#### Released
+
 * Route's configuration accept path of json file or json object
 
 * Route JSON object standard
@@ -9,7 +12,19 @@
        * String : `MyController#MyAction`
        * Object
        * Function
+       
+* Fix vulnerability dependencies
+
+#### To release
+
+* Multiple configurations
 
 * Default handler for error like not found or errors throwed by user
 
-* Handle middlewares
+* Static routes
+
+* Handle middlewares & services
+
+* Error handler for user
+
+* Test

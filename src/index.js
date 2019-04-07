@@ -98,9 +98,9 @@ module.exports.route = (routesConfig) => {
     expressApp.use(NotFoundHandler.handle);
 
     if(isDebug) {
-      // const columnify = require('columnify');
-      // const columns = columnify(Route.debug());
-      // console.log(columns);
+      const columnify = require('columnify');
+      const columns = columnify(Route.get(true));
+      console.log(columns);
     }
 
     // return Route.routes('user');

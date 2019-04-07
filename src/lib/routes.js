@@ -12,8 +12,33 @@ module.exports = {
   get,
 };
 
-function get() {
-  return routes.filter(route => route.generated);
+function get(debug) {
+  debug = debug || false;
+
+  if(!debug) {
+    return routes.filter(route => route.generated);
+  } else {
+    const emoji = require('node-emoji');
+    return routes.map((obj) => {
+      let status = null, {message} = obj;
+
+      if(obj.generated) {
+        status = `${emoji.get(':white_check_mark:')}  Route generated : `.green;
+        message = 'N/A';
+      } else {
+        status = `${emoji.get(':x:')}  Route not generated : `.red;
+      }
+
+      return {
+        status,
+        method: obj.method.toUpperCase(),
+        route: obj.route,
+        controller: obj.debug.controller,
+        action: obj.debug.action,
+        message
+      };
+    });
+  }
   // const newRoutes = [];
   // for(let i in routes) {
   //   if(!newRoutes[routes[i].route]) {
