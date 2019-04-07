@@ -1,14 +1,23 @@
 const debug = require('debug')('ExpressImpRouter.index');
 const path = require('path');
 const express = require('express');
-const Route = require('./route');
+// const Route = require('./route');
+
+const Config = require('./lib/configuration');
+const Route = require('./lib/routes');
+const Middleware = require('./lib/middlewares');
+
+const NotFoundHandler = require('./handlers/notfound');
+
 let app = null, isDebug = false, isRedirect = false;
 
+let expressApp = null;
+
 /**
- * @param _app
+ * @param app
  */
-module.exports = function(_app) {
-  app = _app;
+module.exports = function(app) {
+  expressApp = app;
 
   process.argv.forEach((val) => {
     if(val.startsWith('-v')) {
@@ -19,84 +28,96 @@ module.exports = function(_app) {
   return module.exports;
 };
 
-module.exports.enableDebug = () => {
-  isDebug = true;
-};
-
 /**
  * Initialize routes
  * @param routesConfig
  */
 module.exports.route = (routesConfig) => {
   try {
-    readRoutesConfiguration(routesConfig);
+    routesConfig = Config.read(routesConfig);
+    Route.extract(routesConfig);
+    Route.generate();
 
-    app.use(catchClientError);
+    // Middleware.extract(routesConfig);
+    // Middleware.generate();
 
-    const globalMiddleware = Route.middleware('init');
-    for(const i in globalMiddleware) {
-      app.use(globalMiddleware[i].action);
-    }
+    // app.use(catchClientError);
 
-    const viewsEngine = Route.viewsEngine();
-    for(const i in viewsEngine) {
-      app.set('views', viewsEngine[i].views);
-      app.set('view engine', viewsEngine[i].engine);
-      app.engine('jsx', viewsEngine[i].action);
-    }
+    // const globalMiddleware = Route.middleware('init');
+    // for(const i in globalMiddleware) {
+    //   app.use(globalMiddleware[i].action);
+    // }
 
-    const staticRoute = Route.routes('static');
-    for(const i in staticRoute) {
-      const middleware = Route.middleware(staticRoute[i].route);
-      for(const j in middleware) {
-        app.use(middleware[j].target, middleware[j].action);
-      }
-      app.use(staticRoute[i].route, express.static(`${staticRoute[i].controller}`, staticRoute[i].options));
-    }
+    // const viewsEngine = Route.viewsEngine();
+    // for(const i in viewsEngine) {
+    //   app.set('views', viewsEngine[i].views);
+    //   app.set('view engine', viewsEngine[i].engine);
+    //   app.engine('jsx', viewsEngine[i].action);
+    // }
 
-    const routes = Route.routes();
+    // const staticRoute = Route.routes('static');
+    // for(const i in staticRoute) {
+    //   const middleware = Route.middleware(staticRoute[i].route);
+    //   for(const j in middleware) {
+    //     app.use(middleware[j].target, middleware[j].action);
+    //   }
+    //   app.use(staticRoute[i].route, express.static(`${staticRoute[i].controller}`, staticRoute[i].options));
+    // }
+
+    const routes = Route.get();
     for(const i in routes) {
-      const middleware = Route.middleware(routes[i].route, 'use');
-      for(const j in middleware) {
-        if(middleware[j].target === '*') {
-          app.use(routes[i].route, middleware[j].action);
-        } else {
-          app.use(middleware[j].target, middleware[j].action);
-        }
-      }
+      expressApp[routes[i].method](routes[i].route, routes[i].action);
 
-      const services = Route.service(routes[i].route);
-      for(const s in services) {
-        const service = {[services[s].name]: services[s].service};
-        app.use(routes[i].route, async(req, res, next) => {
-          req.services = service;
-          next();
-        });
-      }
+      // const middleware = Route.middleware(routes[i].route, 'use');
+      // for(const j in middleware) {
+      //   app.use(routes[i].route, middleware[j].action);
+      // }
 
-      const middlewaresInjected = Route.middleware(routes[i].route, 'inject');
-      if(middlewaresInjected.length > 0) {
-        app[routes[i].method](routes[i].route, middlewaresInjected[0].action, routes[i].action);
-      } else {
-        app[routes[i].method](routes[i].route, routes[i].action);
-      }
+      // const services = Route.service(routes[i].route);
+      // for(const s in services) {
+      //   const service = {[services[s].name]: services[s].service};
+      //   app.use(routes[i].route, async(req, res, next) => {
+      //     req.services = service;
+      //     next();
+      //   });
+      // }
+
+      // const middlewaresInjected = Route.middleware(routes[i].route, 'inject');
+      // if(middlewaresInjected.length > 1) {
+      //   throw new Error(`Middlewares of 'inject' type can't be more than two`)
+      // }
+      // if(middlewaresInjected.length > 0) {
+      //   app[routes[i].method](routes[i].route, middlewaresInjected[0].action, routes[i].action);
+      // } else {
+      //   app[routes[i].method](routes[i].route, routes[i].action);
+      // }
     }
 
-    app.use(errorHandler);
+    // app.use(errorHandler);
 
-    app.use(notFoundHandler);
+    expressApp.use(NotFoundHandler.handle);
 
     if(isDebug) {
-      const columnify = require('columnify');
-      const columns = columnify(Route.debug());
-      console.log(columns);
+      // const columnify = require('columnify');
+      // const columns = columnify(Route.debug());
+      // console.log(columns);
     }
 
-    return Route.routes('user');
+    // return Route.routes('user');
   } catch(e) {
     console.log(e);
     debug(e.message);
   }
+};
+
+
+
+/**
+ * Enable debug mode
+ */
+module.exports.enableDebug = () => {
+  isDebug = true;
+  Route.enableDebug();
 };
 
 /**
@@ -111,40 +132,6 @@ function readRoutesConfiguration(routesConfig) {
     const config = configuration(routesConfig[i]);
     Route.extractRoutesAndGenerate(config);
   }
-}
-
-/**
- * @param config
- * @return {*}
- */
-function configuration(config) {
-  debug('Read configuration');
-
-  if(!config) {
-    throw new Error('Config are not defined, please referrer to documentation');
-  }
-
-  if(!config.routes) {
-    throw new Error('Routes JSON file is not defined, please referrer to documentation');
-  }
-
-  if(!config.controllers) {
-    throw new Error('Controllers directory is not defined');
-  }
-
-  if(!config.controllers.endsWith('/')) {
-    config.controllers += '/';
-  }
-
-  if(config.errorHandler && !config.errorHandler.endsWith('/')) {
-    config.errorHandler += '/';
-  }
-
-  if(config.middlewares && !config.middlewares.endsWith('/')) {
-    config.middlewares += '/';
-  }
-
-  return config;
 }
 
 /**
@@ -175,17 +162,6 @@ function catchClientError(req, res, next) {
   next();
 }
 
-/**
- * @param req
- * @param res
- */
-function notFoundHandler(req, res) {
-  app.set('view engine', 'ejs');
-  res.status(404).render(`${path.resolve('.')}/src/assets/errors.ejs`, {
-    status: 404,
-    message: 'Not found'
-  });
-}
 
 /**
  * Error handler

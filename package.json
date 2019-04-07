@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "NODE_ENV=development ./node_modules/mocha/bin/mocha tests/index.js --exit",
-    "start": "node example/index.js -v"
+    "start": "node example/index.js -v",
+    "start-dev": "DEBUG=ExpressImpRouter* nodemon example/simple.js"
   },
   "author": "2max <maxime.maillet93@gmail.com>",
   "license": "GPL-3.0",
