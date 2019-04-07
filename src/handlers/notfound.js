@@ -2,7 +2,7 @@ const path = require('path');
 const express = require('express');
 const expressApp = express();
 
-module.exports.handle = (req, res) => {
+module.exports.handle = (req, res, next) => {
   expressApp.set('view engine', 'ejs');
   res.status(404).render(`${path.resolve('.')}/src/assets/errors.ejs`, {
     status: 404,

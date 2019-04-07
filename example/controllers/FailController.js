@@ -1,5 +1,3 @@
-'use strict';
-
 module.exports.throw = (req, res) => {
   throw new Error('Fail script');
 };

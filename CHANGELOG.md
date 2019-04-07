@@ -19,10 +19,9 @@
 
 * Deduping + deduping with parameters
 
-#### To release
-
-
 * Default handler for error like not found or errors throwed by user
+
+#### To release
 
 * Static routes
 

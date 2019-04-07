@@ -37,6 +37,14 @@ router.route([
       },
       "/params/:id": {
         "get": "HomeController#getParams"
+      },
+      "/error": {
+        "/throw": {
+          "get": "FailController#throw"
+        },
+        "/err": {
+          "get": "FailController#err"
+        }
       }
     }
   },

@@ -8,6 +8,7 @@ const Route = require('./lib/routes');
 const Middleware = require('./lib/middlewares');
 
 const NotFoundHandler = require('./handlers/notfound');
+const ErrorHandler = require('./handlers/error');
 
 let app = null, isDebug = false, isRedirect = false;
 
@@ -93,9 +94,9 @@ module.exports.route = (routesConfig) => {
       // }
     }
 
-    // app.use(errorHandler);
+    expressApp.use((err, req, res, next) => ErrorHandler.handle(err, req, res, next, isDebug));
 
-    expressApp.use(NotFoundHandler.handle);
+    expressApp.use((req, res, next) => NotFoundHandler.handle(req, res, next, isDebug));
 
     if(isDebug) {
       const columnify = require('columnify');
