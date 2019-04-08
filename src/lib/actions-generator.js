@@ -7,18 +7,23 @@ module.exports = {
 };
 
 function findController(path, file) {
+  let controllerName = null;
   if(fs.existsSync(path+file+'.js')) {
     return path+file+'.js';
   }
 
   const files = fs.readdirSync(path);
+
   for(let i in files) {
     if(fs.lstatSync(path+files[i]).isDirectory()) {
-      return findController(path+files[i]+'/', file);
+      controllerName = findController(path+files[i]+'/', file);
+      if(controllerName) {
+        return controllerName;
+      }
     }
   }
 
-  return null;
+  return controllerName;
 }
 
 function generateStatic(route) {
@@ -33,14 +38,19 @@ function generateStatic(route) {
 }
 
 function generate(route) {
-  const controllerPath = findController(route.controllerPath, route.controller);
+  let classPath;
+  if(route.find) {
+    classPath = findController(route.classPath, route.controller);
+  } else {
+    classPath = route.classPath+route.controller;
+  }
 
-  if(!controllerPath) {
+  if(!classPath) {
     throw new Error(`${route.controller} does not exists`);
   }
 
-  const controller = require(controllerPath);
-  route.controllerPath = controllerPath;
+  const controller = require(classPath);
+  route.controllerPath = classPath;
   route.controllerName = route.controller;
   route.controller = controller;
 

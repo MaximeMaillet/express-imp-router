@@ -1,45 +1,84 @@
-function formatMiddleware(middleware) {
-  if ((typeof middleware) === 'string' && middleware.indexOf('#') !== -1) {
-    const [controller, action] = middleware.split('#');
-    return {
-      controller,
-      action,
-      generated: false,
-      type: 'use',
-    };
-  } else if ((typeof middleware) === 'object') {
-    return {
-      controller: middleware.controller,
-      action: middleware.action,
-      generated: false,
-      type: middleware.type ? middleware.type : 'use',
-    };
-  } else {
-    throw new Error(`Syntax malformed for middleware : ${middleware}`);
-  }
+const {isObject, isFunction, isString} = require('../lib/route-utils');
+
+function fromString(route, config) {
+  const [controller, action] = config.split('#');
+  return {
+    method: 'all',
+    route,
+    controller,
+    action,
+    generated: false,
+    type: 'routed',
+    debug: {},
+  };
 }
 
-function fromArrayForRoute(route, middlewares) {
-  const _middlewares = [];
-  for(const i in middlewares) {
-    const midd = formatMiddleware(middlewares[i]);
-    midd.target = route;
-    _middlewares.push(midd);
-  }
-
-  return _middlewares;
+function fromObject(route, config) {
+  const {controller, action, type} = config;
+  return {
+    method: 'all',
+    route,
+    controller,
+    action,
+    generated: false,
+    type: type ? type : 'routed',
+    debug: {},
+  };
 }
 
-function fromArray(middlewares) {
-  const _middlewares = [];
-  for(const i in middlewares) {
-    _middlewares.push(formatMiddleware(middlewares[i]));
+function fromFunction(route, config) {
+  return {
+    method: 'all',
+    route,
+    controller: '_ANON_',
+    action: config,
+    generated: false,
+    type: 'routed',
+    debug: {},
+  };
+}
+
+function extractMiddleware(route, config) {
+  let middlewares = [];
+  if(Array.isArray(config)) {
+    for(let i in config) {
+      middlewares = middlewares.concat(extractMiddleware(route, config[i]));
+    }
+  } else if(isString(config)) {
+    middlewares.push(fromString(route, config));
+  } else if(isObject(config)) {
+    middlewares.push(fromObject(route, config));
+  } else if(isFunction(config)) {
+    middlewares.push(fromFunction(route, config));
   }
 
-  return _middlewares;
+  return middlewares;
+}
+
+function find(rootPath, config) {
+  let middlewares = [];
+  Object.keys(config).map((route) => {
+    if(route === '_middleware_') {
+      middlewares = middlewares.concat(extractMiddleware(rootPath, config[route]));
+    } else if(route.startsWith('/')) {
+      middlewares = middlewares.concat(find(rootPath+route, config[route]));
+    }
+  });
+
+  return middlewares;
+}
+
+function extract(mainConfig, routesConfig, isDebug) {
+  let middlewares = find('', routesConfig);
+
+  for(let i in middlewares) {
+    middlewares[i].classPath = mainConfig.middlewares;
+    middlewares[i].find = false;
+  }
+
+  return middlewares;
 }
 
 module.exports = {
-  fromArray,
-  fromArrayForRoute,
+  extract,
 };

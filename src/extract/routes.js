@@ -1,5 +1,5 @@
 const debug = require('debug')('ExpressImpRouter.routes.extract');
-const methods = require('../config/methods');
+const {isMethod, isObject, isFunction, isStatic, isString, isEndpoint} = require('../lib/route-utils');
 
 function fromString(route, method, config) {
   const [controller, action] = config.split('#');
@@ -98,28 +98,53 @@ function forStatic(route, config) {
   return statics;
 }
 
-function isMethod(key) {
-  return methods.indexOf(key.toUpperCase()) !== -1;
+function shouldIgnore(key) {
+  return ['_middleware_'].indexOf(key) !== -1;
 }
 
-function isUrl(key) {
-  return key.startsWith('/');
-}
+function extractRoute(name, key, config) {
+  let routes = [];
+  if(isMethod(key)) {
 
-function isString(key) {
-  return typeof key === 'string';
-}
+    if(Array.isArray(config)) {
+      for(let i in config) {
+        routes = routes.concat(extractRoute(name, key, config[i]));
+      }
+      return routes;
+    }
 
-function isStatic(key) {
-  return typeof key === 'string' && key === '_static_';
-}
+    if(isString(config)) {
+      routes.push(fromString(name, key, config));
+    } else if(isObject(config)) {
+      routes.push(fromObject(name, key, config));
+    } else if(isFunction(config)) {
+      routes.push(fromFunction(name, key, config));
+    } else {
+      debug(`Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config} founded`)
+      routes.push({
+        route: name,
+        method: 'N/A',
+        debug: {
+          message: `Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config} founded`
+        }
+      });
+    }
+  } else if(isStatic(key)) {
+    routes = routes.concat(forStatic(name, config));
+  } else if(isEndpoint(key)) {
+    routes = routes.concat(extract(name+key, config));
+  } else if(!shouldIgnore(key)) {
+    debug(`Routes config malformed. "${name} > ${key}" is ignored`)
+    routes.push({
+      route: name,
+      method: 'N/A',
+      debug: {
+        message: `Routes config malformed. "${name} > ${key}" is ignored`
+      }
+    });
+  }
 
-function isFunction(key) {
-  return typeof key === 'function';
-}
-
-function isObject(key) {
-  return typeof key === 'object';
+  return routes;
 }
 
 /**
@@ -139,38 +164,7 @@ function extract(name, config) {
   }
 
   Object.keys(config).map((key) => {
-    if(isMethod(key)) {
-      if(isString(config[key])) {
-        routes.push(fromString(name, key, config[key]));
-      } else if(isObject(config[key])) {
-        routes.push(fromObject(name, key, config[key]));
-      } else if(isFunction(config[key])) {
-        routes.push(fromFunction(name, key, config[key]));
-      } else {
-        debug(`Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config[key]} founded`)
-        routes.push({
-          route: name,
-          method: 'N/A',
-          debug: {
-            message: `Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config[key]} founded`
-          }
-        });
-        console.log(routes);
-      }
-    } else if(isStatic(key)) {
-      routes = routes.concat(forStatic(name, config[key]));
-    } else if(isUrl(key)) {
-      routes = routes.concat(extract(name+key, config[key]));
-    } else {
-      debug(`Routes config malformed. "${name} > ${key}" is ignored`)
-      routes.push({
-        route: name,
-        method: 'N/A',
-        debug: {
-          message: `Routes config malformed. "${name} > ${key}" is ignored`
-        }
-      });
-    }
+    routes = routes.concat(extractRoute(name, key, config[key]));
   });
 
   return routes;
@@ -211,7 +205,8 @@ function route(mainConfig, routesConfig, isDebug) {
   });
 
   for(let i in routes) {
-    routes[i].controllerPath = mainConfig.controllers;
+    routes[i].classPath = mainConfig.controllers;
+    routes[i].find = true;
   }
 
   if(isDebug) {

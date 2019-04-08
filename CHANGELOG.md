@@ -17,7 +17,7 @@
 
 * Multiple configurations
 
-* Deduping + deduping with parameters
+* Deduping + deduping with parameters for strict mode
 
 * Default handler for error like not found or errors throwed by user
 

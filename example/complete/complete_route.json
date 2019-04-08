@@ -1,0 +1,13 @@
+{
+  "/": {
+    "get": ["HomeController#home", "HomeController#home2"]
+  },
+  "/params": {
+    "/:id": {
+      "get": "HomeController#getAllParams"
+    },
+    "/:id([0-9]+)": {
+      "get": "HomeController#getNumberParams"
+    }
+  }
+}

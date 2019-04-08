@@ -1,7 +1,23 @@
+const middlewareExtractor = require('../extract/middlewares');
+const debug = require('debug')('ExpressImpRouter.routes.extract');
+
+let middlewares = [], isDebug = false;
+
 module.exports = {
   extract,
-  generate,
+  enableDebug,
+  get,
 };
+
+function get(route) {
+  return middlewares.filter((mid) => {
+    if(route) {
+      return mid.generated && route.startsWith(mid.route);
+    }
+
+    return mid.generated;
+  });
+}
 
 function extract(configAll) {
   debug('Start extract middlewares');
@@ -14,12 +30,12 @@ function extract(configAll) {
       jsonRoutesConfig = require(configAll[i].routes);
     }
 
-    routes = routes.concat(routeExtractor.route(configAll[i], jsonRoutesConfig, isDebug));
+    middlewares = middlewares.concat(middlewareExtractor.extract(configAll[i], jsonRoutesConfig, isDebug));
   }
-  debug('Extract routes : done');
-  return routes;
+  debug('Extract middlewares : done');
+  return middlewares;
 }
 
-function generate() {
-
+function enableDebug() {
+  isDebug = true;
 }

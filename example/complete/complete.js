@@ -1,17 +1,25 @@
 const express = require('express');
 const app = express();
 
-const router = require('../index');
+const router = require('../../index');
 
 router(app);
 router.enableDebug();
 
 router.route([
   {
-    controllers: `${__dirname}/controllers`,
+    controllers: `${__dirname}/controllers1`,
+    middlewares: `${__dirname}/middlewares`,
     routes: {
       "/": {
-        "get": "HomeController#home"
+        "get": ["HomeController#home", "HomeController#home2"]
+      },
+      "/middleware": {
+        "_middleware_": ["withName/getName#getName"],
+        "get": "MiddlewareController#get",
+        // "/other": {
+        //   "_middleware_": [{"controller": "withName/getName", "action": "getName"}]
+        // }
       },
       "/public": {
         "_static_": {
@@ -55,8 +63,9 @@ router.route([
     }
   },
   {
-    controllers: `${__dirname}/controllers_bis`,
-    routes: `${__dirname}/routes_simple.json`
+    config: {route_mode: 'strict'},
+    controllers: `${__dirname}/controllers2`,
+    routes: `${__dirname}/complete_route.json`
   }
 ]);
 

@@ -6,6 +6,7 @@ const express = require('express');
 const Config = require('./lib/configuration');
 const Route = require('./lib/routes');
 const Middleware = require('./lib/middlewares');
+const generator = require('./lib/generator');
 
 const NotFoundHandler = require('./handlers/notfound');
 const ErrorHandler = require('./handlers/error');
@@ -36,11 +37,8 @@ module.exports = function(app) {
 module.exports.route = (routesConfig) => {
   try {
     routesConfig = Config.read(routesConfig);
-    Route.extract(routesConfig);
-    Route.generate();
-
-    // Middleware.extract(routesConfig);
-    // Middleware.generate();
+    generator.generate(Route.extract(routesConfig));
+    generator.generate(Middleware.extract(routesConfig));
 
     // app.use(catchClientError);
 
@@ -72,12 +70,13 @@ module.exports.route = (routesConfig) => {
         continue;
       }
 
+      const middlewares = Middleware.get(routes[i].route);
+      for(const j in middlewares) {
+        expressApp.use(routes[i].route, middlewares[j].action);
+      }
+
       expressApp[routes[i].method](routes[i].route, routes[i].action);
 
-      // const middleware = Route.middleware(routes[i].route, 'use');
-      // for(const j in middleware) {
-      //   app.use(routes[i].route, middleware[j].action);
-      // }
 
       // const services = Route.service(routes[i].route);
       // for(const s in services) {
@@ -105,8 +104,11 @@ module.exports.route = (routesConfig) => {
 
     if(isDebug) {
       const columnify = require('columnify');
-      const columns = columnify(Route.get(true));
-      console.log(columns);
+      const configRoute = Route.get(true);
+      for(let i in configRoute) {
+        const columns = columnify(configRoute[i]);
+        console.log(columns);
+      }
     }
 
     // return Route.routes('user');
@@ -124,6 +126,7 @@ module.exports.route = (routesConfig) => {
 module.exports.enableDebug = () => {
   isDebug = true;
   Route.enableDebug();
+  Middleware.enableDebug();
 };
 
 /**
