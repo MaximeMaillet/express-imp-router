@@ -193,7 +193,7 @@ function route(mainConfig, routesConfig, isDebug) {
   Object.keys(routesConfig).map((route) => {
     if(route.startsWith('/')) {
       routes = routes.concat(extract(route, routesConfig[route]));
-    } else {
+    } else if(!shouldIgnore(route)) {
       routes.push({
         route,
         method: 'N/A',

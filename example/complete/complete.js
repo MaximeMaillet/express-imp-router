@@ -12,14 +12,16 @@ router.route([
     middlewares: `${__dirname}/middlewares`,
     routes: {
       "/": {
+        "_middleware_": ["consolelog#selfLog"],
         "get": ["HomeController#home", "HomeController#home2"]
       },
       "/middleware": {
-        "_middleware_": ["withName/getName#getName"],
+        "_middleware_": ["withName/getName#getName", "consolelog#selfLog", "consolelog#log"],
         "get": "MiddlewareController#get",
-        // "/other": {
-        //   "_middleware_": [{"controller": "withName/getName", "action": "getName"}]
-        // }
+        "/other": {
+          "_middleware_": [{"controller": "withName/getName", "action": "getName2"}],
+          "get": "MiddlewareController#get"
+        }
       },
       "/public": {
         "_static_": {

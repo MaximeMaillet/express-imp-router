@@ -1,4 +1,5 @@
 const {isObject, isFunction, isString} = require('../lib/route-utils');
+const {TYPE} = require('../config/middleware');
 
 function fromString(route, config) {
   const [controller, action] = config.split('#');
@@ -8,7 +9,7 @@ function fromString(route, config) {
     controller,
     action,
     generated: false,
-    type: 'routed',
+    type: TYPE.APP,
     debug: {},
   };
 }
@@ -21,7 +22,7 @@ function fromObject(route, config) {
     controller,
     action,
     generated: false,
-    type: type ? type : 'routed',
+    type: type ? type : TYPE.APP,
     debug: {},
   };
 }
@@ -33,7 +34,7 @@ function fromFunction(route, config) {
     controller: '_ANON_',
     action: config,
     generated: false,
-    type: 'routed',
+    type: TYPE.APP,
     debug: {},
   };
 }

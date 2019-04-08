@@ -12,7 +12,7 @@ module.exports = {
 function get(route) {
   return middlewares.filter((mid) => {
     if(route) {
-      return mid.generated && route.startsWith(mid.route);
+      return mid.generated && route === mid.route;
     }
 
     return mid.generated;

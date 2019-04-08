@@ -63,16 +63,17 @@ module.exports.route = (routesConfig) => {
     //   app.use(staticRoute[i].route, express.static(`${staticRoute[i].controller}`, staticRoute[i].options));
     // }
 
+
+    const middlewares = Middleware.get();
+    for(const i in middlewares) {
+      expressApp.use(middlewares[i].route, middlewares[i].action);
+    }
+
     const routes = Route.get();
     for(const i in routes) {
       if(routes[i].static) {
         expressApp.use(routes[i].route, express.static(routes[i].action));
         continue;
-      }
-
-      const middlewares = Middleware.get(routes[i].route);
-      for(const j in middlewares) {
-        expressApp.use(routes[i].route, middlewares[j].action);
       }
 
       expressApp[routes[i].method](routes[i].route, routes[i].action);

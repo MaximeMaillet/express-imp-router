@@ -25,7 +25,9 @@
 
 #### To release
 
-* Handle middlewares & services
+* Handle middlewares
+
+* Handle services
 
 * Error handler for user + view engine
 
