@@ -77,3 +77,5 @@ router.route([
   }
 ]);
 ```
+
+Note : This route `/*: { ... }` should be used in last position for catch every errors 

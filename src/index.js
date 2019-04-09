@@ -1,7 +1,5 @@
 const debug = require('debug')('ExpressImpRouter.index');
-const path = require('path');
 const express = require('express');
-// const Route = require('./route');
 
 const Config = require('./lib/configuration');
 const Route = require('./lib/routes');
@@ -115,7 +113,7 @@ module.exports.route = (routesConfig) => {
       expressApp.use(errorMiddleware[i].route, errorMiddleware[i].action)
     }
 
-    // expressApp.use((err, req, res, next) => ErrorHandler.handle(err, req, res, next, isDebug));
+    expressApp.use((err, req, res, next) => ErrorHandler.handle(err, req, res, next, isDebug));
 
     expressApp.use((req, res, next) => NotFoundHandler.handle(req, res, next, isDebug));
 

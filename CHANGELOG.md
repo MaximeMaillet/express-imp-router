@@ -23,15 +23,19 @@
 
 * Static routes with *_static_* as method
 
-* Error handler for user
+* Middlewares handing
+  
+  * Error middleware
+  
+  * App middleware
+
 
 #### To release
 
-* Handle middlewares
-
+* Not found handler for user
 
 * Handle services
 
+* Design imp error handler (error + not found)
 
-
-* Test
+* Tests

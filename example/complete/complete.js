@@ -15,7 +15,7 @@ router.route([
       },
       "/public": {
         "_static_": {
-          "targets": ["example/public", "example/public_bis"],
+          "targets": ["example/complete//public", "example/complete/media"],
           "options": {}
         }
       },
