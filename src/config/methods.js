@@ -1,1 +1,12 @@
-module.exports = ['ALL', 'GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'HEAD', 'CONNECT', 'OPTIONS', 'TRACE'];
+module.exports = {
+  ALL: 'ALL',
+  GET: 'GET',
+  POST: 'POST',
+  PATCH: 'PATCH',
+  PUT: 'PUT',
+  DELETE: 'DELETE',
+  HEAD: 'HEAD',
+  CONNECT: 'CONNECT',
+  OPTIONS: 'OPTIONS',
+  TRACE: 'TRACE',
+};

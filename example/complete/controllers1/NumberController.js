@@ -5,11 +5,13 @@ module.exports = {
   getFiveSix,
   postOne,
   patchTwo,
+  patchOne,
   deleteTwo,
-  putTwo
+  putTwo,
 };
 
 function getOne(req, res) {
+  console.log(req.body);
   res.send("1");
 }
 
@@ -26,7 +28,11 @@ function getFiveSix(req, res) {
 }
 
 function postOne(req, res) {
-  res.send({success: true});
+  res.send({success: true, data: req.body});
+}
+
+function patchOne(req, res) {
+  res.send({success: true, data: req.body});
 }
 
 function patchTwo(req, res) {

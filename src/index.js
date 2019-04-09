@@ -11,6 +11,8 @@ const generator = require('./lib/generator');
 const NotFoundHandler = require('./handlers/notfound');
 const ErrorHandler = require('./handlers/error');
 
+const MIDDLEWARE_LEVEL = require('./config/middleware');
+
 let app = null, isDebug = false, isRedirect = false;
 
 let expressApp = null;
@@ -63,21 +65,29 @@ module.exports.route = (routesConfig) => {
     //   app.use(staticRoute[i].route, express.static(`${staticRoute[i].controller}`, staticRoute[i].options));
     // }
 
-
-    const middlewares = Middleware.get();
-    for(const i in middlewares) {
-      expressApp.use(middlewares[i].route, middlewares[i].action);
-    }
+    //
+    // for(const i in middlewares) {
+    //   expressApp.use(middlewares[i].route, middlewares[i].action);
+    // }
 
     const routes = Route.get();
     for(const i in routes) {
+      // Add static routes
       if(routes[i].static) {
         expressApp.use(routes[i].route, express.static(routes[i].action));
         continue;
       }
 
-      expressApp[routes[i].method](routes[i].route, routes[i].action);
-
+      // Add app middlewares
+      const appMiddleware = Middleware.get(MIDDLEWARE_LEVEL.APP, routes[i].route, routes[i].method);
+      let appScoppedMiddleware = appMiddleware.map((mid => mid.middlewares));
+      if(appScoppedMiddleware.length > 0) {
+        // Add routes with middlewares
+        expressApp[routes[i].method](routes[i].route, appScoppedMiddleware, routes[i].action);
+      } else {
+        // Add routes
+        expressApp[routes[i].method](routes[i].route, routes[i].action);
+      }
 
       // const services = Route.service(routes[i].route);
       // for(const s in services) {
@@ -99,7 +109,13 @@ module.exports.route = (routesConfig) => {
       // }
     }
 
-    expressApp.use((err, req, res, next) => ErrorHandler.handle(err, req, res, next, isDebug));
+    // Add error middlewares
+    const errorMiddleware = Middleware.get(MIDDLEWARE_LEVEL.ERROR);
+    for(let i in errorMiddleware) {
+      expressApp.use(errorMiddleware[i].route, errorMiddleware[i].action)
+    }
+
+    // expressApp.use((err, req, res, next) => ErrorHandler.handle(err, req, res, next, isDebug));
 
     expressApp.use((req, res, next) => NotFoundHandler.handle(req, res, next, isDebug));
 

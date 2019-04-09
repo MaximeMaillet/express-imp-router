@@ -23,12 +23,15 @@
 
 * Static routes with *_static_* as method
 
+* Error handler for user
+
 #### To release
 
 * Handle middlewares
 
+
 * Handle services
 
-* Error handler for user + view engine
+
 
 * Test

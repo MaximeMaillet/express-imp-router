@@ -1,27 +1,17 @@
 const express = require('express');
+
 const app = express();
 
 const router = require('../../index');
-
 router(app);
 router.enableDebug();
-
 router.route([
   {
     controllers: `${__dirname}/controllers1`,
     middlewares: `${__dirname}/middlewares`,
     routes: {
       "/": {
-        "_middleware_": ["consolelog#selfLog"],
         "get": ["HomeController#home", "HomeController#home2"]
-      },
-      "/middleware": {
-        "_middleware_": ["withName/getName#getName", "consolelog#selfLog", "consolelog#log"],
-        "get": "MiddlewareController#get",
-        "/other": {
-          "_middleware_": [{"controller": "withName/getName", "action": "getName2"}],
-          "get": "MiddlewareController#get"
-        }
       },
       "/public": {
         "_static_": {
@@ -29,10 +19,48 @@ router.route([
           "options": {}
         }
       },
+      "/middleware": {
+        "_middleware_": {
+          "controllers": ["withName/getName#getName", "consolelog#selfLog", "consolelog#log"],
+          "level": router.MIDDLEWARE_LEVEL.APP,
+          'method': router.METHOD.ALL,
+        },
+        "get": "MiddlewareController#get",
+        "/other": {
+          "_middleware_": {
+            'controllers': [{
+              "controller" : "withName/getName",
+              "action": "getName2"
+            }]
+          },
+          "get": "MiddlewareController#get",
+          "post": "MiddlewareController#post",
+        }
+      },
       "/one": {
-        "get": "NumberController#getOne",
-        "post": "NumberController#postOne",
+        "_middleware_": {
+          controllers: [express.json()],
+          level: router.MIDDLEWARE_LEVEL.APP,
+          method: [router.METHOD.GET, router.METHOD.PATCH]
+        },
+        "get": {
+          controller: "NumberController",
+          action: "getOne",
+        },
+        "post": {
+          "controller": "NumberController",
+          "action": "postOne"
+        },
+        "patch": {
+          "controller": "NumberController",
+          "action": "patchOne"
+        },
         "/two": {
+          "_middleware_": {
+            controllers: ['consolelog#selfLog'],
+            level: router.MIDDLEWARE_LEVEL.APP,
+            method: [router.METHOD.GET, router.METHOD.ALL]
+          },
           "get": "NumberController#getTwo",
           "put": "NumberController#putTwo",
           "patch": "NumberController#patchTwo",
@@ -60,6 +88,21 @@ router.route([
         },
         "/err": {
           "get": "FailController#err"
+        }
+      },
+      "/test_err": {
+        "get": "FailController#err"
+      },
+      "/test_err*": {
+        "_middleware_": {
+          controller: "error-handler#handleHTML",
+          level: router.MIDDLEWARE_LEVEL.ERROR
+        }
+      },
+      "/error*": {
+        "_middleware_": {
+          controller: "error-handler#handleJSON",
+          level: router.MIDDLEWARE_LEVEL.ERROR
         }
       }
     }

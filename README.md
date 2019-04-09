@@ -21,7 +21,6 @@ const router = require('express-imp-router');
 
 const app = express();
 router(app);
-
 router.route([
   {
     routes: './routes.json',
@@ -31,6 +30,9 @@ router.route([
 
 app.listen(6060);
 ```
+
+
+
 
 *./routes.json*
 ```json

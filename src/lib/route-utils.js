@@ -10,7 +10,7 @@ module.exports = {
 };
 
 function isMethod(key) {
-  return methods.indexOf(key.toUpperCase()) !== -1;
+  return Object.values(methods).indexOf(key.toUpperCase()) !== -1;
 }
 
 function isEndpoint(key) {
@@ -30,5 +30,5 @@ function isFunction(key) {
 }
 
 function isObject(key) {
-  return typeof key === 'object';
+  return !Array.isArray(key) && typeof key === 'object';
 }
