@@ -93,18 +93,18 @@ router.route([
       "/test_err": {
         "get": "FailController#err"
       },
-      "/test_err*": {
-        "_middleware_": {
-          controller: "error-handler#handleHTML",
-          level: router.MIDDLEWARE_LEVEL.ERROR
-        }
-      },
       "/error*": {
         "_middleware_": {
           controller: "error-handler#handleJSON",
           level: router.MIDDLEWARE_LEVEL.ERROR
         }
-      }
+      },
+      "/*": {
+        "_middleware_": {
+          controller: "error-handler#handleHTML",
+          level: router.MIDDLEWARE_LEVEL.ERROR
+        }
+      },
     }
   },
   {

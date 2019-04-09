@@ -58,12 +58,6 @@ router.route([
       '/': {
         'get': 'HomeController#home'
       },
-      '/*': {
-        '_middleware': {
-          'level': router.MIDDLEWARE_LEVEL.ERROR,
-          'controller': 'error-handler#handleHtml'
-        },
-      },
       '/api': {
         'get': 'ApiController#get'
       },
@@ -72,6 +66,12 @@ router.route([
           'level': router.MIDDLEWARE_LEVEL.ERROR,
           'controller': 'error-handler#handleJson'
         }
+      },
+      '/*': {
+        '_middleware': {
+          'level': router.MIDDLEWARE_LEVEL.ERROR,
+          'controller': 'error-handler#handleHtml'
+        },
       }
     },
   }
