@@ -1,6 +1,5 @@
 const middlewareExtractor = require('../extract/middlewares');
 const debug = require('debug')('ExpressImpRouter.routes.extract');
-const LEVEL = require('../config/middleware');
 const METHOD = require('../config/methods');
 
 let middlewares = [], isDebug = false;
@@ -11,11 +10,21 @@ module.exports = {
   get,
 };
 
+/**
+ * Return middleware according to level, route and method
+ * @param level
+ * @param route
+ * @param method
+ * @return {*[]}
+ */
 function get(level, route, method) {
-  let scopedMiddlewares = [];
-  for(let j in middlewares) {
-    let index = scopedMiddlewares.map(item => item.route).indexOf(middlewares[j].route);
-    if(index === -1) {
+  const scopedMiddlewares = [];
+  for(const j in middlewares) {
+    const index = scopedMiddlewares
+      .map(item => item.route)
+      .find(item => item.route === middlewares[j].route && middlewares[j].level === item.level);
+
+    if(index === undefined) {
       scopedMiddlewares.push({
         ...middlewares[j],
         middlewares: [middlewares[j].action],
@@ -23,9 +32,6 @@ function get(level, route, method) {
     } else {
       scopedMiddlewares[index].middlewares.push(middlewares[j].action);
     }
-    // if(middlewares[j].level === LEVEL.APP) {
-    //
-    // }
   }
 
   return scopedMiddlewares.filter((mid) => {
@@ -33,7 +39,7 @@ function get(level, route, method) {
     if(mid.method && method) {
       if(Array.isArray(mid.method)) {
         let isPresent = false;
-        for(let i in mid.method) {
+        for(const i in mid.method) {
           if(mid.method[i].toUpperCase() === METHOD.ALL) {
             isPresent = true;
             break;
@@ -59,23 +65,24 @@ function get(level, route, method) {
   });
 }
 
+/**
+ * Extract middlewares
+ * @param configAll
+ * @return {Array|*[]}
+ */
 function extract(configAll) {
   debug('Start extract middlewares');
 
-  let jsonRoutesConfig = null;
-  for(let i in configAll) {
-    if(typeof configAll[i].routes === 'object') {
-      jsonRoutesConfig = configAll[i].routes;
-    } else {
-      jsonRoutesConfig = require(configAll[i].routes);
-    }
-
-    middlewares = middlewares.concat(middlewareExtractor.extract(configAll[i], jsonRoutesConfig, isDebug));
+  for(const i in configAll) {
+    middlewares = middlewares.concat(middlewareExtractor.extract(configAll[i], configAll[i].routes, isDebug));
   }
   debug('Extract middlewares : done');
   return middlewares;
 }
 
+/**
+ * Enable debug mode
+ */
 function enableDebug() {
   isDebug = true;
 }

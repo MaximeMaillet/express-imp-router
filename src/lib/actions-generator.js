@@ -8,15 +8,15 @@ module.exports = {
 
 function findController(path, file) {
   let controllerName = null;
-  if(fs.existsSync(path+file+'.js')) {
-    return path+file+'.js';
+  if(fs.existsSync(`${path+file}.js`)) {
+    return `${path+file}.js`;
   }
 
   const files = fs.readdirSync(path);
 
-  for(let i in files) {
+  for(const i in files) {
     if(fs.lstatSync(path+files[i]).isDirectory()) {
-      controllerName = findController(path+files[i]+'/', file);
+      controllerName = findController(`${path+files[i]}/`, file);
       if(controllerName) {
         return controllerName;
       }
@@ -27,7 +27,7 @@ function findController(path, file) {
 }
 
 function generateStatic(route) {
-  const dirPath = path.resolve('.')+'/'+route.action;
+  const dirPath = `${path.resolve('.')}/${route.action}`;
   if(!fs.existsSync(dirPath)) {
     throw new Error(`This path does not exists : ${dirPath}`);
   }
@@ -55,7 +55,7 @@ function generate(route) {
   route.controller = controller;
 
   if(typeof controller === 'object') {
-    let action = controller[route.action];
+    const action = controller[route.action];
 
     if(typeof action !== 'function') {
       throw new Error(`${route.action} is not a function`);

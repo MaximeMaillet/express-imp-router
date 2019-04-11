@@ -29,13 +29,12 @@
   
   * App middleware
 
+* Not found handling
 
 #### To release
 
-* Not found handler for user
+* Route prefix for each route's config file. 
 
-* Handle services
-
-* Design imp error handler (error + not found)
+* View engine handling
 
 * Tests

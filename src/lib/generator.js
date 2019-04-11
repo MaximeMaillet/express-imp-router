@@ -6,7 +6,7 @@ module.exports = {
 };
 
 function generate(list) {
-  for(let i in list) {
+  for(const i in list) {
     generateItem(list[i]);
   }
 }
@@ -33,9 +33,6 @@ function generateItem(route) {
           route.debug.message = message;
         }
         debug(message);
-        if(isDebug) {
-          console.warn(message);
-        }
         return route;
       }
     }
@@ -46,6 +43,7 @@ function generateItem(route) {
   try {
     route = actionsGenerator.generate(route);
     route.generated = true;
+
   } catch(e) {
     route.generated = false;
     const message = `"${route.method.toUpperCase()} ${route.route}" is ignored. Reason : ${e.message}`;

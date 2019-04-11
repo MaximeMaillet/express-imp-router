@@ -1,6 +1,10 @@
 const debug = require('debug')('ExpressImpRouter.routes.extract');
 const {isMethod, isObject, isFunction, isStatic, isString, isEndpoint} = require('../lib/route-utils');
 
+module.exports = {
+  route
+};
+
 function fromString(route, method, config) {
   const [controller, action] = config.split('#');
   return {
@@ -81,7 +85,7 @@ function fromFunction(route, method, _function) {
 
 function forStatic(route, config) {
   const statics = [];
-  for(let i in config.targets) {
+  for(const i in config.targets) {
     statics.push({
       route,
       method: 'GET',
@@ -107,7 +111,7 @@ function extractRoute(name, key, config) {
   if(isMethod(key)) {
 
     if(Array.isArray(config)) {
-      for(let i in config) {
+      for(const i in config) {
         routes = routes.concat(extractRoute(name, key, config[i]));
       }
       return routes;
@@ -120,7 +124,7 @@ function extractRoute(name, key, config) {
     } else if(isFunction(config)) {
       routes.push(fromFunction(name, key, config));
     } else {
-      debug(`Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config} founded`)
+      debug(`Syntax malformed. "${name} > ${key}" is ignored. It should be an object, string or function. ${typeof config} founded`);
       routes.push({
         route: name,
         method: 'N/A',
@@ -134,7 +138,7 @@ function extractRoute(name, key, config) {
   } else if(isEndpoint(key)) {
     routes = routes.concat(extract(name+key, config));
   } else if(!shouldIgnore(key)) {
-    debug(`Routes config malformed. "${name} > ${key}" is ignored`)
+    debug(`Routes config malformed. "${name} > ${key}" is ignored`);
     routes.push({
       route: name,
       method: 'N/A',
@@ -171,13 +175,13 @@ function extract(name, config) {
 }
 
 function checkRoutes(routes) {
-  for(let i in routes) {
+  for(const i in routes) {
     if(
       !routes[i].controller
       || !routes[i].method
       || !routes[i].action
     ) {
-      debug(`This routes has error(s) : ${routes[i].route}`)
+      debug(`This routes has error(s) : ${routes[i].route}`);
     }
   }
 }
@@ -200,11 +204,11 @@ function route(mainConfig, routesConfig, isDebug) {
         debug: {
           message: 'Syntaxe malformed, route should starts with "/"'
         }
-      })
+      });
     }
   });
 
-  for(let i in routes) {
+  for(const i in routes) {
     routes[i].classPath = mainConfig.controllers;
     routes[i].find = true;
   }
@@ -215,7 +219,3 @@ function route(mainConfig, routesConfig, isDebug) {
 
   return routes;
 }
-
-module.exports = {
-  route
-};

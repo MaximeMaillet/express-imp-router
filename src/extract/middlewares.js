@@ -7,9 +7,8 @@ module.exports = {
 };
 
 function extract(mainConfig, routesConfig, isDebug) {
-  let middlewares = find('', routesConfig);
-
-  for(let i in middlewares) {
+  const middlewares = find('', routesConfig);
+  for(const i in middlewares) {
     middlewares[i].classPath = mainConfig.middlewares;
     middlewares[i].find = false;
   }
@@ -26,10 +25,19 @@ function find(rootPath, config) {
   let middlewares = [];
   Object.keys(config).map((route) => {
     if(route === '_middleware_') {
-      middlewares = middlewares.concat(extractMiddleware(rootPath, {
-        ...config[route],
-        method: config.method ? config.method : config[route].method ? config[route].method : null,
-      }));
+      if(Array.isArray(config[route])) {
+        for(const i in config[route]) {
+          middlewares = middlewares.concat(extractMiddleware(rootPath, {
+            ...config[route][i],
+            method: config.method ? config.method : config[route][i].method ? config[route][i].method : null,
+          }));
+        }
+      } else {
+        middlewares = middlewares.concat(extractMiddleware(rootPath, {
+          ...config[route],
+          method: config.method ? config.method : config[route].method ? config[route].method : null,
+        }));
+      }
     } else if(route.startsWith('/')) {
       middlewares = middlewares.concat(find(rootPath+route, config[route]));
     } else if(isMethod(route) && isObject(config[route])) {
@@ -59,24 +67,16 @@ function extractMiddleware(route, config) {
     throw new Error(`"_middleware_ > controllers" should be an array : ${typeof config.controllers} founded for ${route}`);
   }
 
-
-  switch(config.level) {
-    case LEVEL.ERROR:
-      middlewares = middlewares.concat(from(route, config.controller));
-      break;
-    case LEVEL.APP:
-      for(let i in config.controllers) {
-        middlewares = middlewares.concat(from(route, config.controllers[i]));
-      }
-      break;
+  for(const i in config.controllers) {
+    middlewares = middlewares.concat(from(route, config.controllers[i]));
   }
 
-  for(let i in middlewares) {
+  for(const i in middlewares) {
     middlewares[i] = {
       ...middlewares[i],
       level: config.level ? config.level : LEVEL.DEFAULT,
       method: config.method ? config.method : METHOD.ALL,
-    }
+    };
   }
 
   return middlewares;
@@ -125,12 +125,12 @@ function fromObject(route, config) {
   const {controller, action, level} = config;
   if(Array.isArray(controller)) {
     const middlewares = [];
-    for(let i in controller) {
+    for(const i in controller) {
       middlewares.push({
         ...from(route, controller[i]),
         generated: false,
         level: level ? level : LEVEL.DEFAULT,
-      })
+      });
     }
     return middlewares;
   } else {

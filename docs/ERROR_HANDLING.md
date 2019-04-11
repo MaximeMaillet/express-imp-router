@@ -78,4 +78,20 @@ router.route([
 ]);
 ```
 
-Note : This route `/*: { ... }` should be used in last position for catch every errors 
+Note : This route `/*: { ... }` should be used in last position for catch every errors
+
+## Async / Await
+
+If your controller's action is an async method, you should use `try{...} catch(e){...}` with `next for redirect error to error handler`.
+
+*Example*
+
+```javascript
+module.exports.get = async(req, res, next) => {
+  try {
+    throw new Error('Error');
+  } catch(e) {
+    next(e);
+  }
+};
+```

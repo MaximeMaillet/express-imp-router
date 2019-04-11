@@ -39,7 +39,7 @@ function get(debug) {
         status = 'Route not generated';
       } else {
         color = colors.green;
-        status = `Route generated :`;
+        status = 'Route generated :';
         if(obj.debug.level) {
           color = colors[obj.debug.level];
         }
@@ -77,24 +77,16 @@ function get(debug) {
 function extract(configAll) {
   debug('Start extract routes');
 
-  let jsonRoutesConfig = null;
-  for(let i in configAll) {
+  for(const i in configAll) {
     let scopeRoutes = [];
-
-    if(typeof configAll[i].routes === 'object') {
-      jsonRoutesConfig = configAll[i].routes;
-    } else {
-      jsonRoutesConfig = require(configAll[i].routes);
-    }
-
-    scopeRoutes = scopeRoutes.concat(routeExtractor.route(configAll[i], jsonRoutesConfig, isDebug));
+    scopeRoutes = scopeRoutes.concat(routeExtractor.route(configAll[i], configAll[i].routes, isDebug));
 
     if(configAll[i].config && configAll[i].config.route_mode === 'strict') {
       scopeRoutes = dedupe(scopeRoutes);
     }
 
-    for(let j in scopeRoutes) {
-      scopeRoutes[j].config_name = 'Config'+i;
+    for(const j in scopeRoutes) {
+      scopeRoutes[j].config_name = `Config${i}`;
     }
 
     routes = routes.concat(scopeRoutes);
@@ -118,12 +110,12 @@ function dedupe(scopeRoutes) {
   const routeValidated = [];
   let index = -1;
 
-  for(let i in scopeRoutes) {
+  for(const i in scopeRoutes) {
     if(scopeRoutes[i].static) {
       continue;
     }
-    let strToCompare = scopeRoutes[i].method+scopeRoutes[i].route;
-    let strToCompareHard = scopeRoutes[i].method+scopeRoutes[i].route.replace(/(\(.+\))/gi, '');
+    const strToCompare = scopeRoutes[i].method+scopeRoutes[i].route;
+    const strToCompareHard = scopeRoutes[i].method+scopeRoutes[i].route.replace(/(\(.+\))/gi, '');
 
     if((index = routeValidated.indexOf(strToCompare)) !== -1) {
       scopeRoutes[i].debug.message = `This route already exists : ${scopeRoutes[i].method.toUpperCase()} ${scopeRoutes[i].route}`;
