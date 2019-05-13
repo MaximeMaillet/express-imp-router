@@ -40,3 +40,7 @@
 * View engine handling
 
 * Tests
+
+* Docs
+
+* Examples
