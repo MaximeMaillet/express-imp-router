@@ -3,7 +3,7 @@
 Router for Express.JS
 
 Create your routes file in JSON and redirect each route to controllers.
-You can inject middlewares, services and errors handler.
+You can inject middlewares and errors handler.
 You can configure view engine rendering and give static files.
 
 ## Installation
@@ -24,15 +24,12 @@ router(app);
 router.route([
   {
     routes: './routes.json',
-    controllers: '/controllers'
+    controllers: './controllers'
   }
 ]);
 
 app.listen(6060);
 ```
-
-
-
 
 *./routes.json*
 ```json
@@ -112,9 +109,3 @@ const routes = {
   }
 }
 ```
-
-## How to declare extra
-
-*Extra are services and middlewares*
-
-... todo

@@ -18,51 +18,53 @@ module.exports = {
  * @return {*[]}
  */
 function get(level, route, method) {
-  const scopedMiddlewares = [];
-  for(const j in middlewares) {
-    const index = scopedMiddlewares
-      .map(item => item.route)
-      .find(item => item.route === middlewares[j].route && middlewares[j].level === item.level);
+  return middlewares
+    .filter(item => {
+      let filterLevel, filterRoute, filterMethod = true;
 
-    if(index === undefined) {
-      scopedMiddlewares.push({
-        ...middlewares[j],
-        middlewares: [middlewares[j].action],
-      });
-    } else {
-      scopedMiddlewares[index].middlewares.push(middlewares[j].action);
-    }
-  }
+      if(level) {
+        filterLevel = item.level === level;
+      }
 
-  return scopedMiddlewares.filter((mid) => {
-    let filterMethod = true;
-    if(mid.method && method) {
-      if(Array.isArray(mid.method)) {
-        let isPresent = false;
-        for(const i in mid.method) {
-          if(mid.method[i].toUpperCase() === METHOD.ALL) {
-            isPresent = true;
-            break;
-          }
-
-          if(mid.method[i].toUpperCase() === method.toUpperCase()) {
-            isPresent = true;
-            break;
-          }
-        }
-        filterMethod = isPresent;
-      } else {
-        if(mid.method.toUpperCase() !== METHOD.ALL && mid.method.toUpperCase() !== method.toUpperCase()) {
-          filterMethod = false;
+      if(route) {
+        if(item.inheritance === 'descending') {
+          filterRoute = route.startsWith(item.route);
+        } else {
+          filterRoute = item.route === route;
         }
       }
-    }
 
-    return mid.generated &&
-      mid.level === level &&
-      (route ? mid.route === route : true) &&
-      filterMethod;
-  });
+      if(method) {
+        if(Array.isArray(item.method)) {
+          let isPresent = false;
+          for(const i in item.method) {
+            if(item.method[i].toUpperCase() === METHOD.ALL) {
+              isPresent = true;
+              break;
+            }
+
+            if(item.method[i].toUpperCase() === method.toUpperCase()) {
+              isPresent = true;
+              break;
+            }
+          }
+          filterMethod = isPresent;
+        } else {
+          if(item.method.toUpperCase() !== METHOD.ALL && item.method.toUpperCase() !== method.toUpperCase()) {
+            filterMethod = false;
+          }
+        }
+      }
+
+      return item.generated && filterMethod && filterLevel && filterRoute;
+    })
+    .map(item => {
+      return {
+        route: item.route,
+        action: item.action,
+      };
+    })
+  ;
 }
 
 /**

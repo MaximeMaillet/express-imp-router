@@ -28,6 +28,8 @@
   * Error middleware
   
   * App middleware
+  
+  * Global middleware
 
 * Not found handling
 

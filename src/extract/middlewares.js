@@ -68,7 +68,11 @@ function extractMiddleware(route, config) {
   }
 
   for(const i in config.controllers) {
-    middlewares = middlewares.concat(from(route, config.controllers[i]));
+    const _middlewares = from(route, config.controllers[i]);
+    for(const j in _middlewares){
+      _middlewares[j].inheritance = config.inheritance || 'none';
+    }
+    middlewares = middlewares.concat(_middlewares);
   }
 
   for(const i in middlewares) {

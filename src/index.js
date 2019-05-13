@@ -1,17 +1,12 @@
 const debug = require('debug')('ExpressImpRouter.index');
 const express = require('express');
 const generator = require('./lib/generator');
-
 const Config = require('./lib/configuration');
 const Route = require('./lib/routes');
 const Middleware = require('./lib/middlewares');
-const Error = require('./lib/errors');
-
 const NotFoundHandler = require('./handlers/notfound');
 const ErrorHandler = require('./handlers/error');
-
 const MIDDLEWARE_LEVEL = require('./config/middleware');
-const ERRORS_LEVEL = require('./config/errors');
 
 let isDebug = false, expressApp = null;
 
@@ -57,6 +52,11 @@ module.exports.route = (routesConfig) => {
 
     const routes = Route.get();
     for(const i in routes) {
+      const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL, routes[i].route);
+      if(globalMiddleware.length > 0) {
+        expressApp.use(routes[i].route, globalMiddleware.map(middleware => middleware.action));
+      }
+
       // Add static routes
       if(routes[i].static) {
         expressApp.use(routes[i].route, express.static(routes[i].action));
@@ -65,18 +65,16 @@ module.exports.route = (routesConfig) => {
 
       // Add app middlewares
       const appMiddleware = Middleware.get(MIDDLEWARE_LEVEL.APP, routes[i].route, routes[i].method);
-      const appScoppedMiddleware = appMiddleware.map((mid => mid.middlewares));
-      if(appScoppedMiddleware.length > 0) {
-        // Add routes with middlewares
-        expressApp[routes[i].method](routes[i].route, appScoppedMiddleware, routes[i].action);
+      if(appMiddleware.length > 0) {
+        expressApp[routes[i].method](routes[i].route, appMiddleware.map(middleware => middleware.action), routes[i].action);
       } else {
-        // Add routes
         expressApp[routes[i].method](routes[i].route, routes[i].action);
       }
     }
 
     // Add error middlewares
     const errorMiddleware = Middleware.get(MIDDLEWARE_LEVEL.ERROR);
+    console.log(errorMiddleware)
     for(const i in errorMiddleware) {
       expressApp.use(errorMiddleware[i].route, errorMiddleware[i].action);
     }
