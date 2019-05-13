@@ -74,7 +74,6 @@ module.exports.route = (routesConfig) => {
 
     // Add error middlewares
     const errorMiddleware = Middleware.get(MIDDLEWARE_LEVEL.ERROR);
-    console.log(errorMiddleware)
     for(const i in errorMiddleware) {
       expressApp.use(errorMiddleware[i].route, errorMiddleware[i].action);
     }

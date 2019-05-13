@@ -33,9 +33,9 @@
 
 * Not found handling
 
-#### To release
-
 * Route prefix for each route's config file. 
+
+#### To release
 
 * View engine handling
 

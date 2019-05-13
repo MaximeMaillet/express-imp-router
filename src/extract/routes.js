@@ -196,7 +196,7 @@ function route(mainConfig, routesConfig, isDebug) {
   let routes = [];
   Object.keys(routesConfig).map((route) => {
     if(route.startsWith('/')) {
-      routes = routes.concat(extract(route, routesConfig[route]));
+      routes = routes.concat(extract((mainConfig.root ? mainConfig.root : '') + route, routesConfig[route]));
     } else if(!shouldIgnore(route)) {
       routes.push({
         route,

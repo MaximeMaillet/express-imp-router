@@ -495,7 +495,6 @@ function generate() {
     }
   }
 
-  console.log(MiddleWares);
   for(const i in MiddleWares) {
     MiddleWares[i] = generateController(path.middlewares, MiddleWares[i]);
   }
@@ -525,9 +524,6 @@ function generateController(_path, config) {
     config.generated = true;
     return config;
   }
-
-  console.log('config');
-  console.log(config);
 
   config.action = getAction(_path+config.controller, config.action);
   delete config.controller;
