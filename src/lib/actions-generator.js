@@ -38,30 +38,38 @@ function generateStatic(route) {
 }
 
 function generate(route) {
-  let classPath;
-  if(route.find) {
-    classPath = findController(route.classPath, route.controller);
-  } else {
-    classPath = route.classPath+route.controller;
-  }
+  // let classPath;
+  const filePath = findController(route.classPath, route.controller);
+  // if(route.find) {
+  //   classPath = findController(route.classPath, route.controller);
+  // } else {
+  //   classPath = route.classPath+route.controller;
+  // }
 
-  if(!classPath) {
-    throw new Error(`${route.controller} does not exists`);
-  }
-
-  const controller = require(classPath);
-  route.controllerPath = classPath;
+  route.actionName = route.action;
   route.controllerName = route.controller;
+
+  if(!filePath) {
+    throw {
+      type: 'controller',
+      message: `${route.controller} does not exists`,
+    };
+  }
+
+  const controller = require(filePath);
+  // route.controllerPath = filePath;
   route.controller = controller;
 
   if(typeof controller === 'object') {
     const action = controller[route.action];
 
     if(typeof action !== 'function') {
-      throw new Error(`${route.action} is not a function`);
+      throw {
+        type: 'action',
+        message: `${route.action} is not a function`,
+      };
     }
 
-    route.actionName = route.action;
     route.action = action;
   }
 

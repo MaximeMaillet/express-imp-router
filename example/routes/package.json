@@ -1,0 +1,15 @@
+{
+  "name": "routes",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "express-imp-router": "https://github.com/MaximeMaillet/express-imp-router.git#v0.3.0"
+  }
+}

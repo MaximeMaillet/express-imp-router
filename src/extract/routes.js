@@ -186,6 +186,35 @@ function checkRoutes(routes) {
   }
 }
 
+function dedupe(routes) {
+  const uniqueRoutes = [];
+  let index = -1;
+  for(const i in routes) {
+    if((index = uniqueRoutes.map(item => item.method+item.route).indexOf(routes[i].method+routes[i].route)) !== -1) {
+      uniqueRoutes[index].controllers.push({
+        controller: routes[i].controller,
+        action: routes[i].action,
+        classPath: routes[i].classPath,
+        debug: {}
+      });
+      uniqueRoutes[index].debug.multiple = true;
+    } else {
+      uniqueRoutes.push({
+        route: routes[i].route,
+        method: routes[i].method,
+        controllers: [{
+          controller: routes[i].controller,
+          action: routes[i].action,
+          classPath: routes[i].classPath,
+          debug: {}
+        }],
+        debug: {},
+      });
+    }
+  }
+  return uniqueRoutes;
+}
+
 /**
  * @param mainConfig
  * @param routesConfig
@@ -217,5 +246,5 @@ function route(mainConfig, routesConfig, isDebug) {
     checkRoutes(routes);
   }
 
-  return routes;
+  return dedupe(routes);
 }

@@ -66,9 +66,9 @@ module.exports.route = (routesConfig) => {
       // Add app middlewares
       const appMiddleware = Middleware.get(MIDDLEWARE_LEVEL.APP, routes[i].route, routes[i].method);
       if(appMiddleware.length > 0) {
-        expressApp[routes[i].method](routes[i].route, appMiddleware.map(middleware => middleware.action), routes[i].action);
+        expressApp[routes[i].method](routes[i].route, appMiddleware.map(middleware => middleware.action), routes[i].actions);
       } else {
-        expressApp[routes[i].method](routes[i].route, routes[i].action);
+        expressApp[routes[i].method](routes[i].route, routes[i].actions);
       }
     }
 
