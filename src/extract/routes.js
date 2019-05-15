@@ -1,5 +1,6 @@
 const debug = require('debug')('ExpressImpRouter.routes.extract');
 const {isMethod, isObject, isFunction, isStatic, isString, isEndpoint} = require('../lib/route-utils');
+const errors = require('../config/errors');
 
 module.exports = {
   route
@@ -12,7 +13,6 @@ function fromString(route, method, config) {
     method,
     controller,
     action,
-    generated: false,
     debug: {
       controller: controller,
       action: action,
@@ -28,13 +28,11 @@ function fromObject(route, method, config) {
   const {controller, action, ...rest} = config;
 
   let fController = null, fAction = null, dController = null, dAction = null;
-  let generated = false;
 
   if(typeof controller === 'function') {
     fController = null;
     fAction = controller;
     dController = 'Anonymous';
-    generated = true;
   }
   else if(typeof controller === 'string') {
     if(controller.indexOf('#') !== -1) {
@@ -50,7 +48,6 @@ function fromObject(route, method, config) {
     fController = null;
     fAction = action;
     dController = 'Anonymous';
-    generated = true;
   }
   else {
     throw new Error(`Controller malformed. String or function expected, ${typeof controller} given.`);
@@ -62,7 +59,6 @@ function fromObject(route, method, config) {
     method,
     controller: fController,
     action: fAction,
-    generated,
     debug: {
       controller: dController,
       action: dAction,
@@ -76,7 +72,6 @@ function fromFunction(route, method, _function) {
     method,
     controller: '_ANON_',
     action: _function,
-    generated: true,
     debug: {
       controller: 'Anonymous',
     }
@@ -92,7 +87,6 @@ function forStatic(route, config) {
       controller: '_ANON_',
       action: config.targets[i],
       static: true,
-      generated: false,
       debug: {
         controller: '_ANON_',
         action: config.target,
@@ -158,13 +152,12 @@ function extractRoute(name, key, config) {
  */
 function extract(name, config) {
   let routes = [];
-
-  if(typeof name !== 'string') {
-    throw new Error(`Route should be a string. ${typeof name} founded`);
+  if(/^\/\//.test(name)) {
+    name = name.substring(1);
   }
 
-  if(typeof config !== 'object') {
-    throw new Error(`Route config malformed, it should be an object. ${typeof config} given`);
+  if(typeof config !== 'object' || Array.isArray(config)) {
+    throw new Error(`Route config malformed, it should be an object. ${Array.isArray(config) ? 'array' : typeof config} given`);
   }
 
   Object.keys(config).map((key) => {
@@ -172,18 +165,6 @@ function extract(name, config) {
   });
 
   return routes;
-}
-
-function checkRoutes(routes) {
-  for(const i in routes) {
-    if(
-      !routes[i].controller
-      || !routes[i].method
-      || !routes[i].action
-    ) {
-      debug(`This routes has error(s) : ${routes[i].route}`);
-    }
-  }
 }
 
 function dedupe(routes) {
@@ -195,6 +176,7 @@ function dedupe(routes) {
         controller: routes[i].controller,
         action: routes[i].action,
         classPath: routes[i].classPath,
+        status: routes[i].status,
         debug: {}
       });
       uniqueRoutes[index].debug.multiple = true;
@@ -202,17 +184,41 @@ function dedupe(routes) {
       uniqueRoutes.push({
         route: routes[i].route,
         method: routes[i].method,
+        status: routes[i].status,
         controllers: [{
           controller: routes[i].controller,
           action: routes[i].action,
           classPath: routes[i].classPath,
+          status: routes[i].status,
           debug: {}
         }],
-        debug: {},
+        debug: routes[i].debug,
       });
     }
   }
   return uniqueRoutes;
+}
+
+function checkValid(routes) {
+  let status = 0;
+  for(const i in routes) {
+    status = 0;
+    if(typeof routes[i].route !== 'string' || !routes[i].route.startsWith('/')) {
+      status = status | errors.ROUTE.ROUTE_MALFORMED;
+    }
+
+    if(routes[i].method === 'N/A') {
+      status = status | errors.ROUTE.METHOD_NOT_EXISTS;
+    }
+
+    if(!routes[i].controller || !routes[i].action) {
+      status = status | errors.ROUTE.CONTROLLERS_MALFORMED;
+    }
+
+    routes[i].status = status;
+  }
+
+  return routes;
 }
 
 /**
@@ -230,6 +236,7 @@ function route(mainConfig, routesConfig, isDebug) {
       routes.push({
         route,
         method: 'N/A',
+        controllers: [{}],
         debug: {
           message: 'Syntaxe malformed, route should starts with "/"'
         }
@@ -239,12 +246,7 @@ function route(mainConfig, routesConfig, isDebug) {
 
   for(const i in routes) {
     routes[i].classPath = mainConfig.controllers;
-    routes[i].find = true;
   }
 
-  if(isDebug) {
-    checkRoutes(routes);
-  }
-
-  return dedupe(routes);
+  return dedupe(checkValid(routes));
 }

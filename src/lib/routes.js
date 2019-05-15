@@ -1,6 +1,5 @@
 const debug = require('debug')('ExpressImpRouter.routes');
 const routeExtractor = require('../extract/routes');
-const clone = require('lodash.clone');
 
 let isDebug = false;
 let routes = [];
@@ -16,7 +15,6 @@ function get(debug) {
 
   if(!debug) {
     return routes.map((route) => {
-      route.debug.controllersNotGenerated = route.controllers.filter(controller => !controller.generated);
       route.actions = route.controllers.filter(controller => controller.generated).map(controller => controller.action);
       return route;
     }).filter(item => item.actions && item.actions.length > 0);
@@ -32,9 +30,15 @@ function get(debug) {
   return [routes.map((route) => {
     let color = colors.white;
     const controllersName = [], actionsName = [], debugMessages = [];
-    let controllersGenerated = 0, status = '';
+    let controllersGenerated = 0, statusMessage = '', statusController = 0;
+
+    if(route.debug.message) {
+      debugMessages.push(route.debug.message);
+    }
 
     route.controllers.map((controller) => {
+      statusController |= controller.status;
+
       if(controllersName.indexOf(controller.controllerName) === -1) {
         controllersName.push(controller.controllerName);
       }
@@ -52,19 +56,26 @@ function get(debug) {
       }
     });
 
-    if(controllersGenerated === 0) {
-      color = colors.error;
-      status = 'Nothing generated';
-    } else if(controllersGenerated !== route.controllers.length) {
-      color = colors.warn;
-      status = 'Partial generated';
+    if(route.status === 0) {
+      if(statusController === 0) {
+        color = colors.success;
+        statusMessage = 'OK';
+      } else {
+        if(controllersGenerated === 0) {
+          color = colors.error;
+          statusMessage = 'Fail';
+        } else if(controllersGenerated < route.controllers.length) {
+          color = colors.warn;
+          statusMessage = 'Partial fail';
+        }
+      }
     } else {
-      color = colors.success;
-      status = 'Generated';
+      color = colors.error;
+      statusMessage = 'Fail';
     }
 
     return {
-      status: color(status),
+      status: color(statusMessage),
       method: color(route.method.toUpperCase()),
       route: color(route.route),
       controller: color(controllersName),
@@ -91,6 +102,7 @@ function extract(configAll) {
 
     routes = routes.concat(scopeRoutes);
   }
+
   debug('Extract routes : done');
   return routes;
 }

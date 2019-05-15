@@ -38,7 +38,13 @@ function generateStatic(route) {
 }
 
 function generate(route) {
-  // let classPath;
+  if(!route.controller) {
+    throw {
+      type: 'controller',
+      message: 'Controller is undefined'
+    };
+  }
+
   const filePath = findController(route.classPath, route.controller);
   // if(route.find) {
   //   classPath = findController(route.classPath, route.controller);

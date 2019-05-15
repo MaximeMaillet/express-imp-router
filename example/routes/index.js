@@ -13,29 +13,44 @@ router.route([
         get: 'HomeController#homeString',
         '/second': {
           get: ['HomeController#homeStringFirst', 'HomeController#homeStringSecond']
-        },
-        '/no': {
-          get: 'HomeController#home'
         }
       },
-      // '/object': {
-      //   get: {
-      //     controller: 'HomeController',
-      //     action: 'homeObject'
-      //   },
-      //   '/second': {
-      //     get: [
-      //       {
-      //         controller: 'HomeController',
-      //         action: 'homeObjectFirst'
-      //       },
-      //       {
-      //         controller: 'HomeController',
-      //         action: 'homeObjectSecond'
-      //       }
-      //     ]
-      //   }
-      // }
+      '/object': {
+        get: {
+          controller: 'HomeController',
+          action: 'homeObject'
+        },
+        '/second': {
+          get: [
+            {
+              controller: 'HomeController',
+              action: 'homeObjectFirst'
+            },
+            {
+              controller: 'HomeController',
+              action: 'homeObjectSecond'
+            }
+          ]
+        },
+      },
+      '/function': {
+        get: (req, res) => {res.send('Home function');},
+        '/second': {
+          get: [
+            (req, res, next) => {console.log('Home function first'); next();},
+            (req, res) => {res.send('Home function second')}
+          ]
+        }
+      },
+      'mm': {
+        get: 'coucou#cou'
+      },
+      '/mm': {
+        get: 'HomeController#coucou'
+      },
+      '/meme': {
+        get: ['HomeController#homeString', 'coucouController#Encu']
+      }
     }
   }
 ]);
