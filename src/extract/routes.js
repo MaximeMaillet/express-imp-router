@@ -83,7 +83,7 @@ function forStatic(route, config) {
   for(const i in config.targets) {
     statics.push({
       route,
-      method: 'GET',
+      method: 'get',
       controller: '_ANON_',
       action: config.targets[i],
       static: true,
@@ -173,11 +173,8 @@ function dedupe(routes) {
   for(const i in routes) {
     if((index = uniqueRoutes.map(item => item.method+item.route).indexOf(routes[i].method+routes[i].route)) !== -1) {
       uniqueRoutes[index].controllers.push({
-        controller: routes[i].controller,
-        action: routes[i].action,
-        classPath: routes[i].classPath,
-        status: routes[i].status,
-        debug: {}
+        debug: {},
+        ...routes[i],
       });
       uniqueRoutes[index].debug.multiple = true;
     } else {
@@ -186,11 +183,8 @@ function dedupe(routes) {
         method: routes[i].method,
         status: routes[i].status,
         controllers: [{
-          controller: routes[i].controller,
-          action: routes[i].action,
-          classPath: routes[i].classPath,
-          status: routes[i].status,
-          debug: {}
+          debug: {},
+          ...routes[i],
         }],
         debug: routes[i].debug,
       });

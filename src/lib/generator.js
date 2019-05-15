@@ -20,11 +20,28 @@ function generate(list) {
 function generateOneRoute(route) {
   for(const i in route.controllers) {
     if(route.controllers[i].controller === '_ANON_') {
-      if(typeof route.controllers[i].action === 'function') {
-        route.controllers[i].generated = true;
+      if(route.controllers[i].static) {
+        try {
+          route.static = true;
+          route.controllers[i] = actionsGenerator.generateStatic(route.controllers[i]);
+          route.controllers[i].generated = true;
+        } catch(e) {
+          debug(e.message);
+          route.controllers[i].generated = false;
+          route.controllers[i].debug.message = e.message;
+          if(e.type === 'controller') {
+            route.controllers[i].status = route.controllers[i].status | errors.CONTROLLER.CONTROLLER_FAILED;
+          } else if(e.type === 'action') {
+            route.controllers[i].status = route.controllers[i].status | errors.CONTROLLER.ACTION_FAILED;
+          }
+        }
       } else {
-        route.controllers[i].generated = false;
-        route.controllers[i].status = route.controllers[i].status | errors.CONTROLLER.NO_ACTION;
+        if(typeof route.controllers[i].action === 'function') {
+          route.controllers[i].generated = true;
+        } else {
+          route.controllers[i].generated = false;
+          route.controllers[i].status = route.controllers[i].status | errors.CONTROLLER.NO_ACTION;
+        }
       }
 
       continue;
@@ -46,25 +63,5 @@ function generateOneRoute(route) {
     }
   }
 
-  // if(route.controller === '_ANON_') {
-  //   if(route.static) {
-  //     try {
-  //       route = actionsGenerator.generateStatic(route);
-  //       route.generated = true;
-  //       return route;
-  //     } catch(e) {
-  //       route.generated = false;
-  //       const message = `"${route.method.toUpperCase()} ${route.route}" is ignored. Reason : ${e.message}`;
-  //       if(!route.debug.message) {
-  //         route.debug.message = message;
-  //       }
-  //       debug(message);
-  //       return route;
-  //     }
-  //   }
-  //   return route;
-  // }
-
-  // console.log(route);
   return route;
 }

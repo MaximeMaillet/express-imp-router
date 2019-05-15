@@ -42,14 +42,10 @@ router.route([
           ]
         }
       },
-      'mm': {
-        get: 'coucou#cou'
-      },
-      '/mm': {
-        get: 'HomeController#coucou'
-      },
-      '/meme': {
-        get: ['HomeController#homeString', 'coucouController#Encu']
+      '/public': {
+        '_static_': {
+          targets: ['public', 'media'],
+        }
       }
     }
   }

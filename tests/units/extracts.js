@@ -393,4 +393,31 @@ describe('Extract routes', () => {
       });
     });
   });
+
+  describe('static', () => {
+    it('should return an array with static route + 2 actions', () => {
+      mainConfig['routes'] = {
+        '/public': {
+          '_static_': {
+            'targets': ['example/public', 'example/media'],
+          }
+        }
+      };
+
+      const result = routeExtract.route(mainConfig, mainConfig.routes, isDebug);
+      expect(result).to.have.lengthOf(1);
+      expect(result[0]).to.an('object');
+      expect(result[0].method).to.equal('get');
+      expect(result[0].route).to.equal('/public');
+      expect(result[0].controllers).to.be.an('array').that.have.lengthOf(2);
+      expect(result[0].controllers[0].controller).to.equal('_ANON_');
+      expect(result[0].controllers[0].action).to.equal('example/public');
+      expect(result[0].controllers[0].static).to.be.true;
+      expect(result[0].controllers[0].classPath).to.equal(mainConfig.controllers);
+      expect(result[0].controllers[1].controller).to.equal('_ANON_');
+      expect(result[0].controllers[1].action).to.equal('example/media');
+      expect(result[0].controllers[1].static).to.be.true;
+      expect(result[0].controllers[1].classPath).to.equal(mainConfig.controllers);
+    });
+  });
 });

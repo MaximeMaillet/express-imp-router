@@ -59,7 +59,9 @@ module.exports.route = (routesConfig) => {
 
       // Add static routes
       if(routes[i].static) {
-        expressApp.use(routes[i].route, express.static(routes[i].action));
+        for(const j in routes[i].actions) {
+          expressApp.use(routes[i].route, express.static(routes[i].actions[j]));
+        }
         continue;
       }
 

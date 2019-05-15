@@ -29,7 +29,10 @@ function findController(path, file) {
 function generateStatic(route) {
   const dirPath = `${path.resolve('.')}/${route.action}`;
   if(!fs.existsSync(dirPath)) {
-    throw new Error(`This path does not exists : ${dirPath}`);
+    throw {
+      type: 'action',
+      message: `This path does not exists : ${dirPath}`
+    };
   }
 
   route.action = dirPath;
