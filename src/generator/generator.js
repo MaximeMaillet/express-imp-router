@@ -11,6 +11,8 @@ function generate(list) {
   for(const i in list) {
     generateOneRoute(list[i]);
   }
+
+  return list;
 }
 
 /**
@@ -46,7 +48,6 @@ function generateOneRoute(route) {
 
       continue;
     }
-
 
     try {
       actionsGenerator.generate(route.controllers[i]);

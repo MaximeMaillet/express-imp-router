@@ -20,4 +20,5 @@
 // require('./errorHandlers/index');
 // view engine
 
-require('./units/extracts');
+// require('./units/extracts');
+require('./units/generate');

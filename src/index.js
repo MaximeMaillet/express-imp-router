@@ -1,6 +1,6 @@
 const debug = require('debug')('ExpressImpRouter.index');
 const express = require('express');
-const generator = require('./lib/generator');
+const generator = require('./generator/generator');
 const Config = require('./lib/configuration');
 const Route = require('./lib/routes');
 const Middleware = require('./lib/middlewares');
