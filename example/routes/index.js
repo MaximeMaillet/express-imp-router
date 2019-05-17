@@ -7,7 +7,6 @@ router.enableDebug();
 router.route([
   {
     controllers: `${__dirname}/controllers`,
-    route_mode: 'strict',
     routes: {
       '/string': {
         get: 'HomeController#homeString',

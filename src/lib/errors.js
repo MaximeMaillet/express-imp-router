@@ -14,6 +14,9 @@ function extract(configAll) {
   for(const i in configAll) {
     errors = errors.concat(errorExtractor.route(configAll[i], configAll[i].routes, isDebug));
   }
+
+  console.log('FIND ERR');
+  console.log(errors);
   debug('Extract errors : done');
   return errors;
 }

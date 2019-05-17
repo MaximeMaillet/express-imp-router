@@ -30,15 +30,15 @@ router.route([
     routes: {
       '/': {
         '_middleware': {
-          'level': router.MIDDLEWARE_LEVEL.ERROR,
-          'controller': 'error-handler#handleHtml'
+          level: router.MIDDLEWARE_LEVEL.ERROR,
+          controllers: ['error-handler#handleHtml']
         },
         'get': 'HomeController#home'
       },
       '/api': {
         '_middleware': {
-          'level': router.MIDDLEWARE_LEVEL.ERROR,
-          'controller': 'error-handler#handleJson'
+          level: router.MIDDLEWARE_LEVEL.ERROR,
+          controllers: ['error-handler#handleJson']
         },
         'get': 'ApiController#get'
       }

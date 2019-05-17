@@ -42,14 +42,6 @@ module.exports.route = (routesConfig) => {
     generator.generate(Middleware.extract(routesConfig));
 
     let notFoundErrors = 0;
-
-    // const viewsEngine = Route.viewsEngine();
-    // for(const i in viewsEngine) {
-    //   app.set('views', viewsEngine[i].views);
-    //   app.set('view engine', viewsEngine[i].engine);
-    //   app.engine('jsx', viewsEngine[i].action);
-    // }
-
     const routes = Route.get();
     for(const i in routes) {
       const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL, routes[i].route);
@@ -68,7 +60,7 @@ module.exports.route = (routesConfig) => {
       // Add app middlewares
       const appMiddleware = Middleware.get(MIDDLEWARE_LEVEL.APP, routes[i].route, routes[i].method);
       if(appMiddleware.length > 0) {
-        expressApp[routes[i].method](routes[i].route, appMiddleware.map(middleware => middleware.action), routes[i].actions);
+        expressApp[routes[i].method](routes[i].route, appMiddleware.map(middleware => middleware.actions), routes[i].actions);
       } else {
         expressApp[routes[i].method](routes[i].route, routes[i].actions);
       }
@@ -77,7 +69,9 @@ module.exports.route = (routesConfig) => {
     // Add error middlewares
     const errorMiddleware = Middleware.get(MIDDLEWARE_LEVEL.ERROR);
     for(const i in errorMiddleware) {
-      expressApp.use(errorMiddleware[i].route, errorMiddleware[i].action);
+      console.log(errorMiddleware[i].route);
+      console.log(errorMiddleware[i].actions);
+      expressApp.use(errorMiddleware[i].route, errorMiddleware[i].actions);
     }
 
     expressApp.use(ErrorHandler.handle);

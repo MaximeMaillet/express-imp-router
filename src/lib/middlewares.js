@@ -19,8 +19,12 @@ module.exports = {
  */
 function get(level, route, method) {
   return middlewares
+    .map(item => {
+      item.actions = item.controllers.filter(controller => controller.generated).map(controller => controller.action);
+      return item;
+    })
     .filter(item => {
-      let filterLevel, filterRoute, filterMethod = true;
+      let filterLevel = true, filterRoute = true, filterMethod = true;
 
       if(level) {
         filterLevel = item.level === level;
@@ -56,13 +60,7 @@ function get(level, route, method) {
         }
       }
 
-      return item.generated && filterMethod && filterLevel && filterRoute;
-    })
-    .map(item => {
-      return {
-        route: item.route,
-        action: item.action,
-      };
+      return filterMethod && filterLevel && filterRoute;
     })
   ;
 }
@@ -76,8 +74,9 @@ function extract(configAll) {
   debug('Start extract middlewares');
 
   for(const i in configAll) {
-    middlewares = middlewares.concat(middlewareExtractor.extract(configAll[i], configAll[i].routes, isDebug));
+    middlewares = middlewares.concat(middlewareExtractor.extract(configAll[i], configAll[i].routes));
   }
+
   debug('Extract middlewares : done');
   return middlewares;
 }

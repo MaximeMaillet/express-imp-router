@@ -421,3 +421,7 @@ describe('Extract routes', () => {
     });
   });
 });
+
+describe('Extract middlewares', () => {
+
+});

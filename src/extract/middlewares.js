@@ -1,16 +1,66 @@
 const {isObject, isFunction, isString, isMethod} = require('../lib/route-utils');
 const LEVEL = require('../config/middleware');
 const METHOD = require('../config/methods');
+const errors = require('../config/errors');
 
 module.exports = {
   extract,
 };
 
-function extract(mainConfig, routesConfig, isDebug) {
-  const middlewares = find('', routesConfig);
+function extract(mainConfig, routesConfig) {
+  const middlewares = find((mainConfig.root ? mainConfig.root : ''), routesConfig);
   for(const i in middlewares) {
     middlewares[i].classPath = mainConfig.middlewares;
-    middlewares[i].find = false;
+  }
+  return dedupe(checkValid(middlewares));
+}
+
+/**
+ * @param middlewares
+ * @returns {Array}
+ */
+function dedupe(middlewares) {
+  const uniqueMiddlewares = [];
+  let index=-1;
+  for(const i in middlewares) {
+    if((index = uniqueMiddlewares.map(item => item.method+item.route+item.level).indexOf(middlewares[i].method+middlewares[i].route+middlewares[i].level)) !== -1) {
+      uniqueMiddlewares[index].controllers.push({
+        ...middlewares[i],
+      });
+    } else {
+      uniqueMiddlewares.push({
+        ...middlewares[i],
+        controllers: [middlewares[i]]
+      });
+    }
+  }
+  return uniqueMiddlewares;
+}
+
+/**
+ * @param middlewares
+ * @returns {*}
+ */
+function checkValid(middlewares) {
+  for(const i in middlewares) {
+    let status = 0;
+    if(typeof middlewares[i].route !== 'string' || !middlewares[i].route.startsWith('/')) {
+      status = status | errors.MIDDLEWARE.ROUTE_MALFORMED;
+    }
+
+    if(middlewares[i].level !== LEVEL.ERROR && middlewares[i].method === 'N/A') {
+      status = status | errors.MIDDLEWARE.METHOD_NOT_EXISTS;
+    }
+
+    if(!middlewares[i].controller) {
+      status = status | errors.MIDDLEWARE.CONTROLLER_FAILED;
+    }
+
+    if(!middlewares[i].action) {
+      status = status | errors.MIDDLEWARE.ACTION_FAILED;
+    }
+
+    middlewares[i].status = status;
   }
 
   return middlewares;
@@ -80,6 +130,7 @@ function extractMiddleware(route, config) {
       ...middlewares[i],
       level: config.level ? config.level : LEVEL.DEFAULT,
       method: config.method ? config.method : METHOD.ALL,
+      status: 0,
     };
   }
 
