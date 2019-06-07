@@ -6,6 +6,17 @@ Create your routes file in JSON and redirect each route to controllers.
 You can inject middlewares and errors handler.
 You can configure view engine rendering and give static files.
 
+## Features
+
+- Manage application's routes at same place
+
+- Add middleware with *method*, level and/or inheritance
+
+- Handle errors and *Not Found* page
+
+- Manage static routes
+
+
 ## Installation
 
 ```bash
@@ -23,89 +34,43 @@ const app = express();
 router(app);
 router.route([
   {
-    routes: './routes.json',
-    controllers: './controllers'
+    controllers: './controllers',
+    middlewares: './middlewares',
+    routes: {
+      '/': {
+        get: 'HomeController#home'
+      }
+    },
   }
 ]);
 
-app.listen(6060);
+app.listen(8080);
 ```
 
-*./routes.json*
-```json
-{
-  "/articles": {
-    "get": "ArticleController#getAll",
-    "post": {
-      "controller": "ArticleController",
-      "action": "add"
-    },
-    "/:id": {
-      "get": "ArticleController#getOne",
-      "patch": "ArticleController#setOne"
-    }
-  }
-}
-```
-
-*./controllers/ArticleController.js*
+*./controllers/HomeController.js*
 
 ```javascript
 module.exports = {
-  getOne: (req, res) => {
+  home: (req, res, next) => {
     const id = req.params.id;
-    //...
+    res.send({
+      message: 'ok'
+    })
   },
-  getAll: (req, res) => {
-    //...
-  },
-  add: (req, res) => {
-    // ...
-  },
-  setOne: (req, res) => {
-    const id = req.params.id;
-    // ...
-  }
 }
 ```
 
-## How to declare route
+## Contributing
 
-*From string*
-```json
-{
-  "/route": {
-    "get": "MyController#get"
-  }
-}
+```bash
+git clone https://github.com/MaximeMaillet/express-imp-router.git
+cd express-imp-router
+nvm install
+npm install
 ```
 
-*From object*
-```json
-{
-  "/route": {
-    "get": {
-      "controller": "MyController",
-      "action": "get"
-    }
-  }
-}
-```
+Tests :
 
-*From function*
-```javascript
-const routes = {
-  '/route': {
-    get: {
-      action: (req, res) => {
-        // ...
-      }
-    }
-  },
-  '/route2': {
-    get: (req, res) => {
-      // ...
-    }
-  }
-}
+```bash
+npm test
 ```

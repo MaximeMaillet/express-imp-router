@@ -35,15 +35,12 @@
 
 * Route prefix for each route's config file. 
 
+* Docs
+
+* Examples
+
 #### To release
 
 * View engine handling
 
-* Debug
-  * when multiple actions/controllers in one route
-
 * Tests
-
-* Docs
-
-* Examples

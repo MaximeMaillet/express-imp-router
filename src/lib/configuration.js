@@ -45,10 +45,6 @@ function checkConfig(config) {
   if(typeof config.routes !== 'object' && typeof config.routes !== 'string') {
     throw new Error('Routes JSON is invalid. It should be a path (String) or JSON object (Object)')
   }
-
-  if(!config.controllers) {
-    throw new Error('Controllers directory is not defined');
-  }
 }
 
 /**
@@ -71,7 +67,7 @@ function checkKeywords(config) {
  * @param config
  */
 function flat(config) {
-  if(!config.controllers.endsWith('/')) {
+  if(config.controllers && !config.controllers.endsWith('/')) {
     config.controllers += '/';
   }
 

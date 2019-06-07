@@ -40,11 +40,6 @@ router.route([
             (req, res) => {res.send('Home function second')}
           ]
         }
-      },
-      '/public': {
-        [router.IMP.STATIC]: {
-          targets: ['public', 'media'],
-        }
       }
     }
   }
