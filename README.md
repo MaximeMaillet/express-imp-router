@@ -6,6 +6,10 @@ Create your routes file in JSON and redirect each route to controllers.
 You can inject middlewares and errors handler.
 You can configure view engine rendering and give static files.
 
+You can see [Documentation](https://github.com/MaximeMaillet/express-imp-router/tree/master/docs)
+
+Try it with [examples](https://github.com/MaximeMaillet/express-imp-router/tree/master/example)
+
 ## Features
 
 - Manage application's routes at same place
