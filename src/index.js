@@ -6,7 +6,7 @@ const Route = require('./lib/routes');
 const Middleware = require('./lib/middlewares');
 const NotFoundHandler = require('./handlers/notfound');
 const ErrorHandler = require('./handlers/error');
-const MIDDLEWARE_LEVEL = require('./config/middleware');
+const MIDDLEWARE_LEVEL = require('./config/middleware').LEVEL;
 
 let isDebug = false, expressApp = null;
 
@@ -41,7 +41,7 @@ module.exports.route = (routesConfig) => {
     for(const i in routes) {
       const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL, routes[i].route);
       if(globalMiddleware.length > 0) {
-        expressApp.use(routes[i].route, globalMiddleware.map(middleware => middleware.action));
+        expressApp.use(routes[i].route, globalMiddleware.map(middleware => middleware.actions));
       }
 
       // Add static routes
@@ -64,8 +64,6 @@ module.exports.route = (routesConfig) => {
     // Add error middlewares
     const errorMiddleware = Middleware.get(MIDDLEWARE_LEVEL.ERROR);
     for(const i in errorMiddleware) {
-      console.log(errorMiddleware[i].route);
-      console.log(errorMiddleware[i].actions);
       expressApp.use(errorMiddleware[i].route, errorMiddleware[i].actions);
     }
 
@@ -76,7 +74,7 @@ module.exports.route = (routesConfig) => {
       for(const i in notFoundErrors) {
         const regExp = new RegExp(notFoundErrors[i].route);
         if(regExp.exec(req.url)) {
-          return notFoundErrors[i].action(req, res, next);
+          return notFoundErrors[i].actions[0](req, res, next);
         }
       }
 

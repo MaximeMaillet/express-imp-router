@@ -60,7 +60,7 @@ function get(level, route, method) {
         }
       }
 
-      return filterMethod && filterLevel && filterRoute;
+      return filterMethod && filterLevel && filterRoute && item.actions.length > 0;
     })
   ;
 }

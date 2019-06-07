@@ -1,5 +1,5 @@
 const {isObject, isFunction, isString, isMethod} = require('../lib/route-utils');
-const LEVEL = require('../config/middleware');
+const LEVEL = require('../config/middleware').LEVEL;
 const METHOD = require('../config/methods');
 const errors = require('../config/errors');
 
@@ -29,8 +29,14 @@ function dedupe(middlewares) {
       });
     } else {
       uniqueMiddlewares.push({
-        ...middlewares[i],
-        controllers: [middlewares[i]]
+        route: middlewares[i].route,
+        level: middlewares[i].level,
+        inheritance: middlewares[i].inheritance,
+        method: middlewares[i].method,
+        status: middlewares[i].status,
+        controllers: [middlewares[i]],
+        generated: false,
+        debug: middlewares[i].debug,
       });
     }
   }
@@ -77,16 +83,26 @@ function find(rootPath, config) {
     if(route === '_middleware_') {
       if(Array.isArray(config[route])) {
         for(const i in config[route]) {
-          middlewares = middlewares.concat(extractMiddleware(rootPath, {
-            ...config[route][i],
-            method: config.method ? config.method : config[route][i].method ? config[route][i].method : null,
-          }));
+          middlewares = middlewares.concat(
+            extractMiddleware(
+              rootPath,
+              {
+                ...config[route][i],
+                method: config.method ? config.method : config[route][i].method ? config[route][i].method : null,
+              }
+            )
+          );
         }
       } else {
-        middlewares = middlewares.concat(extractMiddleware(rootPath, {
-          ...config[route],
-          method: config.method ? config.method : config[route].method ? config[route].method : null,
-        }));
+        middlewares = middlewares.concat(
+          extractMiddleware(
+            rootPath,
+            {
+              ...config[route],
+              method: config.method ? config.method : config[route].method ? config[route].method : null,
+            }
+          )
+        );
       }
     } else if(route.startsWith('/')) {
       middlewares = middlewares.concat(find(rootPath+route, config[route]));
