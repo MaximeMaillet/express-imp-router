@@ -2,75 +2,75 @@
 
 Router for Express.JS
 
-Create your routes file in JSON and redirect to controllers.
+Create your routes file in JSON and redirect each route to controllers.
+You can inject middlewares and errors handler.
+You can configure view engine rendering and give static files.
 
-## Todo
+## Features
 
-* Find controller directory by itself
-* Done test
-* Handle own errors
-* Renvoyer les erreurs provenant des middlewares
+- Manage application's routes at same place
 
-## Releases 0.2.0
+- Add middleware with *method*, level and/or inheritance
 
-* Generate static routes
-* Generate route from json object
-* Add tests
-* Middleware
+- Handle errors and *Not Found* page
 
-## Releases 0.1.0
-
-* Generate routes from json file
-* Generate erros route with error handler 
-
-
-```json
-"/route": {
-  "method": {
-    "controller",
-    "errorHandler",
-    "middleware"
-  }
-}
-```
-
-```json
-"/route": {
-  "method": "controller#action"
-}
-```
-
-```json
-"/route": {
-  "method": (req, res, next) => {
-    // todo
-  }
-}
-```
+- Manage static routes
 
 
 ## Installation
 
 ```bash
-npm install express-imp-router --save
+npm i express-imp-router --save
 ```
 
 ## Usage
 
+*./index.js*
 ```javascript
-
 const express = require('express');
 const router = require('express-imp-router');
 
 const app = express();
 router(app);
-
 router.route([
   {
-    routes: `${__dirname}/routes.json`,
-    controllers: `${__dirname}/controllers`
+    controllers: './controllers',
+    middlewares: './middlewares',
+    routes: {
+      '/': {
+        get: 'HomeController#home'
+      }
+    },
   }
 ]);
 
-app.listen(6060);
+app.listen(8080);
+```
+
+*./controllers/HomeController.js*
+
+```javascript
+module.exports = {
+  home: (req, res, next) => {
+    const id = req.params.id;
+    res.send({
+      message: 'ok'
+    })
+  },
+}
+```
+
+## Contributing
+
+```bash
+git clone https://github.com/MaximeMaillet/express-imp-router.git
+cd express-imp-router
+nvm install
+npm install
+```
+
+Tests :
+
+```bash
+npm test
 ```

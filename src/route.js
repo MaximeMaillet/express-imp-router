@@ -6,6 +6,8 @@ const fs = require('fs');
 
 const extractHeaders = require('./extract/headers');
 const extractRoutes = require('./extract/routes');
+const extractMiddlewares = require('./extract/middlewares');
+const extractServices = require('./extract/services');
 
 const Routes = [];
 const ErrorRoutes = [];
@@ -14,7 +16,7 @@ const MiddleWares = [];
 const GlobalMiddleWares = [];
 const ViewEngine = [];
 const ErrorsHandler = [];
-const Services = [];
+let Services = [];
 
 const path = {
   errorHandler: null,
@@ -71,7 +73,7 @@ module.exports.middleware = (route, type) => {
 
 module.exports.service = (route) => {
   return Services.filter((obj) => {
-    return obj.generated && obj.target === route;
+    return obj.generated && obj.target.test(route);
   });
 };
 
@@ -148,6 +150,7 @@ function extract(routes) {
         parseRoute(route, routes[route]);
       }
       else if(route.startsWith('_')) {
+        // extra global
         parseExtraRoutes(route, routes[route]);
       }
 
@@ -170,7 +173,7 @@ function parseRoute(parentRoute, config) {
   Object.keys(config).map((key) => {
     if(key.startsWith('_')) {
       parseExtraRoutes(key, [{
-        target: [parentRoute],
+        target: new RegExp(`^\\${parentRoute}/*`),
         action: config[key]
       }]);
     }
@@ -203,7 +206,7 @@ function extractRoute(parentRoute, key, config) {
     Object.keys(route).forEach((key) => {
       if(key.startsWith('_')) {
         parseExtraRoutes(key, [{
-          target: [parentRoute],
+          target: parentRoute,
           action: route[key]
         }]);
       }
@@ -233,7 +236,7 @@ function parseExtraRoutes(name, config) {
   } else if(name === '_views') {
     parseViews(config);
   } else if(name === '_services') {
-    parseService(config);
+    Services = Services.concat(extractServices.extract(config));
   } else if(name === '_headers') {
     extractHeaders(name, config);
   }
@@ -252,31 +255,14 @@ function parseExtraRoutes(name, config) {
 function parseMiddleware(config) {
   for(const i in config) {
     if(config[i].target === 'init') {
-      for(const j in config[i].action) {
-        let controller = config[i].action[j], action = null;
-        if(config[i].action[j].indexOf('#') !== -1) {
-          [controller, action] = config[i].action[j].split('#');
-        }
-
-        GlobalMiddleWares.push({
-          controller,
-          action,
-          debug: {
-            target: 'all',
-            controller: config[i].action[j],
-            action: action,
-          }
-        });
+      const middlewares = extractMiddlewares.fromArray(config[i].action);
+      for(const j in middlewares) {
+        GlobalMiddleWares.push(middlewares[j]);
       }
-    } else if(config[i].target === '*') {
-      for(const j in config[i].action) {
-        extractMiddleware(config[i].action[j], ['*']);
-      }
-    }
-    else {
-
-      for(const j in config[i].action) {
-        extractMiddleware(config[i].action[j], config[i].target, config[i]);
+    } else {
+      const middlewares = extractMiddlewares.fromArrayForRoute(config[i].target, config[i].action);
+      for(const j in middlewares) {
+        MiddleWares.push(middlewares[j]);
       }
     }
   }
@@ -350,16 +336,18 @@ function parseViews(config) {
 }
 
 function parseService(config) {
-  for(const i in config) {
-    for(const p in config[i].target) {
-      for(const j in config[i].action) {
-        Services.push({
-          target: config[i].target[p],
-          name: config[i].action[j],
-        });
-      }
-    }
-  }
+
+
+  // for(const i in config) {
+  //   for(const p in config[i].target) {
+  //     for(const j in config[i].action) {
+  //       Services.push({
+  //         target: config[i].target[p],
+  //         name: config[i].action[j],
+  //       });
+  //     }
+  //   }
+  // }
 }
 
 /**
@@ -447,6 +435,7 @@ function extractRouteFromString(route, method, config) {
 }
 
 /**
+ * @deprecated
  * Extract middleware
  * @param name
  * @param targets
@@ -557,7 +546,7 @@ function generateService(_path, config) {
       }
     }
 
-    return null;
+    throw new Error(`Service is not instanciated : ${config.name}`);
   }
 
   return null;
