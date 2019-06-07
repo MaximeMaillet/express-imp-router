@@ -1,0 +1,103 @@
+const { expect } = require('chai');
+const midExtract = require('../../../src/extract/middlewares');
+const router = require('../../../index');
+
+describe('Extract middlewares', () => {
+  const mainConfig = {
+    controllers: `${__dirname}/controllers1`,
+  };
+
+  function expectExtract(result) {
+    expect(result[0].controllers[0].route).to.equal('/string');
+    expect(result[0].controllers[0].controller).to.equal('withName/getName');
+    expect(result[0].controllers[0].action).to.equal('getName');
+    expect(result[0].controllers[0].level).to.equal(router.MIDDLEWARE_LEVEL.APP);
+    expect(result[0].controllers[1].route).to.equal('/string');
+    expect(result[0].controllers[1].controller).to.equal('consolelog');
+    expect(result[0].controllers[1].action).to.equal('selfLog');
+    expect(result[0].controllers[1].level).to.equal(router.MIDDLEWARE_LEVEL.APP);
+    expect(result[0].controllers[2].route).to.equal('/string');
+    expect(result[0].controllers[2].controller).to.equal('consolelog');
+    expect(result[0].controllers[2].action).to.equal('log');
+    expect(result[0].controllers[2].level).to.equal(router.MIDDLEWARE_LEVEL.APP);
+  }
+
+  describe('from string', () => {
+    it('should return array with 1 route and 3 middlewares', () => {
+      mainConfig['routes'] = {
+        '/string': {
+          [router.IMP.MIDDLEWARE]: {
+            'controllers': ['withName/getName#getName', 'consolelog#selfLog', 'consolelog#log'],
+          },
+          get: 'HomeController#home',
+        },
+      };
+      const result = midExtract.extract(mainConfig, mainConfig.routes);
+      expect(result).to.be.an('array').that.have.lengthOf(1);
+      expect(result[0].controllers).to.be.an('array').that.have.lengthOf(3);
+      expectExtract(result);
+    });
+  });
+
+  describe('from object', () => {
+    it('should return array with 1 route and 3 middlewares', () => {
+      mainConfig['routes'] = {
+        '/string': {
+          [router.IMP.MIDDLEWARE]: {
+            'controllers': [
+              {
+                controller: 'withName/getName',
+                action: 'getName'
+              },
+              {
+                controller: 'consolelog',
+                action: 'selfLog'
+              },
+              {
+                controller: 'consolelog',
+                action: 'log'
+              },
+            ],
+          },
+          get: 'HomeController#home',
+        },
+      };
+      const result = midExtract.extract(mainConfig, mainConfig.routes);
+      expect(result).to.be.an('array').that.have.lengthOf(1);
+      expect(result[0].controllers).to.be.an('array').that.have.lengthOf(3);
+      expectExtract(result);
+    });
+  });
+
+  describe('from string', () => {
+    it('should return array with 1 route and 3 middlewares', () => {
+      mainConfig['routes'] = {
+        '/string': {
+          [router.IMP.MIDDLEWARE]: {
+            'controllers': [
+              (req, res, next) => {},
+              (req, res, next) => {},
+              (req, res, next) => {},
+            ],
+          },
+          get: 'HomeController#home',
+        },
+      };
+      const result = midExtract.extract(mainConfig, mainConfig.routes);
+      expect(result).to.be.an('array').that.have.lengthOf(1);
+      expect(result[0].controllers).to.be.an('array').that.have.lengthOf(3);
+      expect(result[0].controllers[0].route).to.equal('/string');
+      expect(result[0].controllers[0].controller).to.equal('_ANON_');
+      expect(result[0].controllers[0].action).to.be.an('function');
+      expect(result[0].controllers[0].level).to.equal(router.MIDDLEWARE_LEVEL.APP);
+      expect(result[0].controllers[1].route).to.equal('/string');
+      expect(result[0].controllers[1].controller).to.equal('_ANON_');
+      expect(result[0].controllers[1].action).to.be.an('function');
+      expect(result[0].controllers[1].level).to.equal(router.MIDDLEWARE_LEVEL.APP);
+      expect(result[0].controllers[2].route).to.equal('/string');
+      expect(result[0].controllers[2].controller).to.equal('_ANON_');
+      expect(result[0].controllers[2].action).to.be.an('function');
+      expect(result[0].controllers[2].level).to.equal(router.MIDDLEWARE_LEVEL.APP);
+    });
+  });
+});

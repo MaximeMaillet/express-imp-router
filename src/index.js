@@ -32,11 +32,6 @@ module.exports = function(app) {
 module.exports.route = (routesConfig) => {
   try {
     routesConfig = Config.read(routesConfig);
-    for(const i in routesConfig) {
-      if (typeof routesConfig[i].routes !== 'object') {
-        routesConfig[i].routes = require(routesConfig[i].routes);
-      }
-    }
 
     generator.generate(Route.extract(routesConfig));
     generator.generate(Middleware.extract(routesConfig));

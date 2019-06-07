@@ -1,4 +1,5 @@
 const debug = require('debug')('ExpressImpRouter.configuration');
+const {isImpKeyword, isMethod} = require('./route-utils');
 
 module.exports = {
   read,
@@ -22,8 +23,9 @@ function checkAll(configAll) {
   }
 
   for(const i in configAll) {
-    checkConfig(configAll[i]);
     flat(configAll[i]);
+    checkConfig(configAll[i]);
+    checkKeywords(configAll[i].routes);
   }
 }
 
@@ -50,6 +52,21 @@ function checkConfig(config) {
 }
 
 /**
+ * Check keyword in config route
+ * @param config
+ */
+function checkKeywords(config) {
+  Object.keys(config).map((route) => {
+
+    if(route.startsWith('/')) {
+      checkKeywords(config[route]);
+    } else if (!isImpKeyword(route) && !isMethod(route)) {
+      console.log(`WARNING : Potential error with keyword ${route}`);
+    }
+  });
+}
+
+/**
  * Flat config
  * @param config
  */
@@ -64,5 +81,9 @@ function flat(config) {
 
   if(config.middlewares && !config.middlewares.endsWith('/')) {
     config.middlewares += '/';
+  }
+
+  if (typeof config.routes !== 'object') {
+    config.routes = require(config.routes);
   }
 }

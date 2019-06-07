@@ -1,4 +1,5 @@
 const methods = require('../config/methods');
+const impKeywords = require('../config/imp-keywords');
 
 module.exports = {
   isMethod,
@@ -7,6 +8,7 @@ module.exports = {
   isStatic,
   isFunction,
   isObject,
+  isImpKeyword,
 };
 
 function isMethod(key) {
@@ -31,4 +33,8 @@ function isFunction(key) {
 
 function isObject(key) {
   return !Array.isArray(key) && typeof key === 'object';
+}
+
+function isImpKeyword(key) {
+  return Object.values(impKeywords).indexOf(key.toLowerCase()) !== -1;
 }

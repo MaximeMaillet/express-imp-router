@@ -42,7 +42,7 @@ router.route([
         }
       },
       '/public': {
-        '_static_': {
+        [router.IMP.STATIC]: {
           targets: ['public', 'media'],
         }
       }
