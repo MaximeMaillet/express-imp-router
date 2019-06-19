@@ -20,5 +20,6 @@
 // require('./errorHandlers/index');
 // view engine
 
+require('./units/config');
 require('./units/extracts');
 require('./units/generate');
