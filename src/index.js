@@ -15,6 +15,8 @@ let isDebug = false, expressApp = null;
 module.exports = function(app) {
   expressApp = app;
 
+  checkApp();
+
   process.argv.forEach((val) => {
     if(val.startsWith('-v')) {
       isDebug = true;
@@ -29,9 +31,12 @@ module.exports = function(app) {
  * @param routesConfig
  */
 module.exports.route = (routesConfig) => {
-  try {
-    routesConfig = Config.read(routesConfig);
 
+  checkApp();
+
+  routesConfig = Config.read(routesConfig);
+
+  try {
     generator.generate(Route.extract(routesConfig));
     generator.generate(Middleware.extract(routesConfig));
 
@@ -103,3 +108,12 @@ module.exports.enableDebug = () => {
   Route.enableDebug();
   Middleware.enableDebug();
 };
+
+/**
+ * Check if app exists  and it's correct
+ */
+function checkApp() {
+  if (!expressApp) {
+    throw new Error('You should provide app from express');
+  }
+}

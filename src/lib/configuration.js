@@ -22,9 +22,13 @@ function checkAll(configAll) {
     throw new Error('Config must be an array');
   }
 
+  if(configAll.length === 0) {
+    throw new Error('Config array is empty');
+  }
+
   for(const i in configAll) {
-    flat(configAll[i]);
     checkConfig(configAll[i]);
+    flat(configAll[i]);
     checkKeywords(configAll[i].routes);
   }
 }
@@ -34,8 +38,12 @@ function checkAll(configAll) {
  * @param config
  */
 function checkConfig(config) {
-  if(!config) {
+  if(!config || typeof config !== 'object') {
     throw new Error('Config are not defined, please referrer to documentation');
+  }
+
+  if(!config.controllers) {
+    throw new Error('Controller path is not defined, please referrer to documentation');
   }
 
   if(!config.routes) {
@@ -69,10 +77,6 @@ function checkKeywords(config) {
 function flat(config) {
   if(config.controllers && !config.controllers.endsWith('/')) {
     config.controllers += '/';
-  }
-
-  if(config.services && !config.services.endsWith('/')) {
-    config.services += '/';
   }
 
   if(config.middlewares && !config.middlewares.endsWith('/')) {
