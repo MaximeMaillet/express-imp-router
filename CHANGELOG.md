@@ -1,7 +1,37 @@
+## Release 0.5.0 - View Engine
+
+
+#### To release
+
+* View engine handling
+
+* Tests
+
+
+
+
+## Releases 0.4.0 - Middleware priority
+
+#### To release
+
+* Add priority for middleware + natural priority when middleware is declared in route children
+
+* Tests
+
+
+
+## Releases 0.3.1
+
+* Fix middleware level Global error
+
+* Add purge method
+
+* Inheritance for middleware Error and NotFound
+
+* Tests
+
+
 ## Releases 0.3.0 - Refacto
-
-
-#### Released
 
 * Route's configuration accept path of json file or json object
 
@@ -38,9 +68,3 @@
 * Docs
 
 * Examples
-
-#### To release
-
-* View engine handling
-
-* Tests

@@ -8,8 +8,13 @@ module.exports = {
   extract,
   enableDebug,
   get,
+  purge,
 };
 
+/**
+ * @param debug
+ * @returns {*}
+ */
 function get(debug) {
   debug = debug || false;
 
@@ -112,4 +117,11 @@ function extract(configAll) {
  */
 function enableDebug() {
   isDebug = true;
+}
+
+/**
+ * Purge routes
+ */
+function purge() {
+  routes = [];
 }

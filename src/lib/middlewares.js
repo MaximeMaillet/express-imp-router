@@ -8,6 +8,7 @@ module.exports = {
   extract,
   enableDebug,
   get,
+  purge,
 };
 
 /**
@@ -86,4 +87,11 @@ function extract(configAll) {
  */
 function enableDebug() {
   isDebug = true;
+}
+
+/**
+ * Purge middlewares
+ */
+function purge() {
+  middlewares = [];
 }

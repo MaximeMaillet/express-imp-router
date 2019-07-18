@@ -50,7 +50,7 @@ function checkConfig(config) {
     throw new Error('Routes JSON file is not defined, please referrer to documentation');
   }
 
-  if(typeof config.routes !== 'object' && typeof config.routes !== 'string') {
+  if((typeof config.routes !== 'object' && typeof config.routes !== 'string') || Array.isArray(config.routes)) {
     throw new Error('Routes JSON is invalid. It should be a path (String) or JSON object (Object)')
   }
 }

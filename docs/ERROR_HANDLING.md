@@ -4,7 +4,7 @@ You can handle error per route or for your whole application
 
 ## Error handler
 
-According to express documentatio, yours handling functions should have four parameters with `err` as first and `next` as end. Event if `next` is never used.
+According to express documentation, yours errors handling functions should have four parameters with `err` as first and `next` as end. Event if `next` is never used.
 
 *Error handler example : (error-handler.js)*
 
@@ -29,14 +29,14 @@ router.route([
   {
     routes: {
       '/': {
-        '_middleware': {
+        [router.IMP.MIDDLEWARE]: {
           level: router.MIDDLEWARE_LEVEL.ERROR,
           controllers: ['error-handler#handleHtml']
         },
         'get': 'HomeController#home'
       },
       '/api': {
-        '_middleware': {
+        [router.IMP.MIDDLEWARE]: {
           level: router.MIDDLEWARE_LEVEL.ERROR,
           controllers: ['error-handler#handleJson']
         },
@@ -56,22 +56,20 @@ router.route([
   {
     routes: {
       '/': {
-        'get': 'HomeController#home'
+        [router.IMP.MIDDLEWARE]: {
+          controllers: ['error-handler#handleHtml'],
+          inheritance: router.MIDDLEWARE.INHERITANCE.DEFAULT,
+          level: router.MIDDLEWARE.LEVEL.ERROR,
+        },
+        get: 'HomeController#home'
       },
       '/api': {
-        'get': 'ApiController#get'
-      },
-      '/api*': {
-        '_middleware': {
-          'level': router.MIDDLEWARE_LEVEL.ERROR,
-          'controller': 'error-handler#handleJson'
-        }
-      },
-      '/*': {
-        '_middleware': {
-          'level': router.MIDDLEWARE_LEVEL.ERROR,
-          'controller': 'error-handler#handleHtml'
+        [router.IMP.MIDDLEWARE]: {
+          controllers: ['error-handler#handleJson'],
+          inheritance: router.MIDDLEWARE.INHERITANCE.DESC,
+          level: router.MIDDLEWARE.LEVEL.ERROR,
         },
+        get: 'ApiController#get'
       }
     },
   }
