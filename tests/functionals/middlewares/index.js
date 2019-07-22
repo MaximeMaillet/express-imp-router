@@ -504,9 +504,157 @@ describe('Attach middlewares', () => {
     });
   });
 
-  describe('With global middleware', () => {
-    describe('And precise method', () => {
+  describe('With global middlewares', () => {
+    before((done) => {
+      port = 6061;
+      app = express();
+      router.purge();
+      router(app);
+      config = [{
+        controllers: `${path.resolve('.')}/tests/functionals/data/controllers`,
+        middlewares: `${path.resolve('.')}/tests/functionals/data/middlewares`,
+        routes: {
+          '/': {
+            [router.IMP.MIDDLEWARE]: [
+              {
+                controllers: ['mMethods#get'],
+                level: router.MIDDLEWARE.LEVEL.GLOBAL,
+              },
+            ],
+            get: 'HomeController#showMethod',
+            '/other': {
+              get: 'HomeController#showMethod',
+              '/other': {
+                get: 'HomeController#showMethod',
+              }
+            }
+          },
+        },
+      }];
+      router.route(config);
+      server = app.listen(port, () => {
+        done();
+      });
+    });
 
+    after(() => {
+      app = null;
+      if(server) {
+        server.close();
+        server = null;
+      }
+    });
+
+    it('Should return GET', (done) => {
+      chai
+        .request(app)
+        .get('/')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.result).to.equal('GET');
+          done();
+        });
+    });
+
+    it('Should return GET', (done) => {
+      chai
+        .request(app)
+        .get('/other')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.result).to.equal('GET');
+          done();
+        });
+    });
+
+    it('Should return GET', (done) => {
+      chai
+        .request(app)
+        .get('/other/other')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.result).to.equal('GET');
+          done();
+        });
+    });
+  });
+
+  describe('With app middlewares', () => {
+    before((done) => {
+      port = 6061;
+      app = express();
+      router.purge();
+      router(app);
+      config = [{
+        controllers: `${path.resolve('.')}/tests/functionals/data/controllers`,
+        middlewares: `${path.resolve('.')}/tests/functionals/data/middlewares`,
+        routes: {
+          '/': {
+            [router.IMP.MIDDLEWARE]: [
+              {
+                controllers: ['mMethods#get'],
+                level: router.MIDDLEWARE.LEVEL.APP,
+              },
+            ],
+            get: 'HomeController#showMethod',
+            '/other': {
+              get: 'HomeController#showMethod',
+              '/other': {
+                get: 'HomeController#showMethod',
+              }
+            }
+          },
+        },
+      }];
+      router.route(config);
+      server = app.listen(port, () => {
+        done();
+      });
+    });
+
+    after(() => {
+      app = null;
+      if(server) {
+        server.close();
+        server = null;
+      }
+    });
+
+    it('Should return GET', (done) => {
+      chai
+        .request(app)
+        .get('/')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.result).to.equal('GET');
+          done();
+        });
+    });
+
+    it('Should not return GET', (done) => {
+      chai
+        .request(app)
+        .get('/other')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        });
+    });
+
+    it('Should not return GET', (done) => {
+      chai
+        .request(app)
+        .get('/other/other')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          done();
+        });
     });
   });
 
