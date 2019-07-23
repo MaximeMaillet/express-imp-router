@@ -2,7 +2,7 @@ const chai = require('chai');
 const chaiHttp = require('chai-http');
 const express = require('express');
 const path = require('path');
-const router = require('../../../index');
+const router = require('../../index');
 
 const { expect } = chai;
 chai.use(chaiHttp);

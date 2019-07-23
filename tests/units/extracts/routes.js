@@ -398,7 +398,7 @@ describe('Extract routes', () => {
     it('should return an array with static route + 2 actions', () => {
       mainConfig['routes'] = {
         '/public': {
-          '_static_': {
+          [router.IMP.STATIC]: {
             'targets': ['example/public', 'example/media'],
           }
         }

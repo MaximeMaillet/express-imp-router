@@ -24,6 +24,11 @@
 
 * Fix bug middleware when you had a middleware in child of "/"
 
+* Refacto string config to variable
+
+* Refacto static route feature + tests
+
+
 
 ## Releases 0.3.1
 
