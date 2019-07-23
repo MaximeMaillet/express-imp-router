@@ -1,6 +1,7 @@
 const debug = require('debug')('ExpressImpRouter.routes.extract');
 const {isMethod, isObject, isFunction, isStatic, isString, isEndpoint} = require('../lib/route-utils');
 const errors = require('../config/errors');
+const impKeywords = require('../config/imp-keywords');
 
 module.exports = {
   route
@@ -97,7 +98,7 @@ function forStatic(route, config) {
 }
 
 function shouldIgnore(key) {
-  return ['_middleware_'].indexOf(key) !== -1;
+  return [impKeywords.MIDDLEWARE].indexOf(key) !== -1;
 }
 
 function extractRoute(name, key, config) {

@@ -24,7 +24,7 @@ function isString(key) {
 }
 
 function isStatic(key) {
-  return typeof key === 'string' && key === '_static_';
+  return typeof key === 'string' && key === impKeywords.STATIC;
 }
 
 function isFunction(key) {

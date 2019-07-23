@@ -1,5 +1,6 @@
 const {isObject, isFunction, isString, isMethod} = require('../lib/route-utils');
 const LEVEL = require('../config/middleware').LEVEL;
+const impKeywords = require('../config/imp-keywords');
 const METHOD = require('../config/methods');
 const errors = require('../config/errors');
 
@@ -80,7 +81,7 @@ function checkValid(middlewares) {
 function find(rootPath, config) {
   let middlewares = [];
   Object.keys(config).map((route) => {
-    if(route === '_middleware_') {
+    if(route === impKeywords.MIDDLEWARE) {
       if(Array.isArray(config[route])) {
         for(const i in config[route]) {
           middlewares = middlewares.concat(
@@ -126,11 +127,11 @@ function extractMiddleware(route, config) {
   let middlewares = [];
 
   if(!isObject(config)) {
-    throw new Error(`"_middleware_" should be an object : ${typeof config} founded for ${route}`);
+    throw new Error(`"${impKeywords.MIDDLEWARE}" should be an object : ${typeof config} founded for ${route}`);
   }
 
   if(config.level !== LEVEL.ERROR && !Array.isArray(config.controllers)) {
-    throw new Error(`"_middleware_ > controllers" should be an array : ${typeof config.controllers} founded for ${route}`);
+    throw new Error(`"${impKeywords.MIDDLEWARE} > controllers" should be an array : ${typeof config.controllers} founded for ${route}`);
   }
 
   for(const i in config.controllers) {
