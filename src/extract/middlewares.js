@@ -2,6 +2,7 @@ const {isObject, isFunction, isString, isMethod} = require('../lib/route-utils')
 const LEVEL = require('../config/middleware').LEVEL;
 const impKeywords = require('../config/imp-keywords');
 const METHOD = require('../config/methods');
+const PRIORITY = require('../config/priority');
 const errors = require('../config/errors');
 
 module.exports = {
@@ -138,6 +139,7 @@ function extractMiddleware(route, config) {
     const _middlewares = from(route, config.controllers[i]);
     for(const j in _middlewares){
       _middlewares[j].inheritance = config.inheritance || 'none';
+      _middlewares[j].priority = config.priority ? config.priority : PRIORITY.DEFAULT;
     }
     middlewares = middlewares.concat(_middlewares);
   }

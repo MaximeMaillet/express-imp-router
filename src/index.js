@@ -48,7 +48,7 @@ module.exports.route = (routesConfig) => {
 
     const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL);
     if(globalMiddleware.length > 0) {
-      expressApp.use(globalMiddleware.map(middleware => middleware.actions));
+      expressApp.use(globalMiddleware.map(middleware => middleware.action));
     }
 
     let notFoundErrors = 0;
@@ -65,7 +65,7 @@ module.exports.route = (routesConfig) => {
       // Add app middlewares
       const appMiddleware = Middleware.get(MIDDLEWARE_LEVEL.APP, routes[i].route, routes[i].method);
       if(appMiddleware.length > 0) {
-        expressApp[routes[i].method](routes[i].route, appMiddleware.map(middleware => middleware.actions), routes[i].actions);
+        expressApp[routes[i].method](routes[i].route, appMiddleware.map(middleware => middleware.action), routes[i].actions);
       } else {
         expressApp[routes[i].method](routes[i].route, routes[i].actions);
       }
@@ -84,7 +84,7 @@ module.exports.route = (routesConfig) => {
           }
 
           if(regExp.exec(req.url)) {
-            return errorMiddleware[i].actions[0](err, req, res, next);
+            return errorMiddleware[i].action(err, req, res, next);
           }
         }
 
@@ -106,7 +106,7 @@ module.exports.route = (routesConfig) => {
           }
 
           if(regExp.exec(req.url)) {
-            return notFoundErrors[i].actions[0](req, res, next);
+            return notFoundErrors[i].action(req, res, next);
           }
         }
         next();

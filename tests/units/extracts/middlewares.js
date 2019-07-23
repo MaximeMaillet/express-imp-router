@@ -112,7 +112,7 @@ describe('Extract middlewares', () => {
                 action: 'getName',
               },
             ],
-            inheritance: 'descending',
+            inheritance: router.MIDDLEWARE.INHERITANCE.DESC,
           },
           get: 'HomeController#home',
         },
@@ -309,5 +309,64 @@ describe('Extract middlewares', () => {
       expect(result[1].route).to.equal('/child');
       expect(result[1].method).to.equal(router.METHOD.ALL);
     })
+  });
+
+  describe('with priority', () => {
+    let result = null;
+    before(() => {
+      mainConfig['routes'] = {
+        '/string': {
+          [router.IMP.MIDDLEWARE]: [
+            {
+              controllers: ['withName/getName#getName'],
+              priority: router.PRIORITY.DEFAULT,
+            },
+            {
+              controllers: ['withName/getName#getName'],
+              priority: router.PRIORITY.MAX,
+            },
+            {
+              controllers: ['withName/getName#getName'],
+              priority: router.PRIORITY.MIN,
+            },
+            {
+              controllers: ['withName/getName#getName'],
+              priority: 12,
+            }
+          ],
+          get: 'HomeController#home',
+        },
+      };
+      result = midExtract.extract(mainConfig, mainConfig.routes);
+    });
+
+    after(() => {
+      result = null;
+    });
+
+    it('should return array with 1 route and 4 middlewares', () => {
+      expect(result).to.be.an('array').that.have.lengthOf(1);
+      expect(result[0].controllers).to.be.an('array').that.have.lengthOf(4);
+    });
+
+    it('should have priority 0 as first element', () => {
+      expect(result[0].controllers[0].priority).to.be.a('number');
+      expect(result[0].controllers[0].priority).to.equal(0);
+    });
+
+    it('should have priority 0 as second element', () => {
+      expect(result[0].controllers[1].priority).to.be.a('number');
+      expect(result[0].controllers[1].priority).to.equal(0);
+    });
+
+    it('should have priority 999999 as third element', () => {
+      expect(result[0].controllers[2].priority).to.be.a('number');
+      expect(result[0].controllers[2].priority).to.equal(999999);
+    });
+
+    it('should have priority 12 as fourth element', () => {
+      expect(result[0].controllers[3].priority).to.be.a('number');
+      expect(result[0].controllers[3].priority).to.equal(12);
+    });
   });
 });

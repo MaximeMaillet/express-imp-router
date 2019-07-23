@@ -19,7 +19,7 @@ module.exports = {
  * @return {*[]}
  */
 function get(level, route, method) {
-  return middlewares
+  let middlewareReturn = middlewares
     .map(item => {
       item.actions = item.controllers.filter(controller => controller.generated).map(controller => controller.action);
       return item;
@@ -64,6 +64,37 @@ function get(level, route, method) {
       return filterMethod && filterLevel && filterRoute && item.actions.length > 0;
     })
   ;
+
+  if(middlewareReturn.length === 0) {
+    return [];
+  }
+
+  middlewareReturn = middlewareReturn
+    .map((middleware) => {
+      return middleware.controllers
+        .map((item) => {
+          return {
+            priority: item.priority,
+            action: item.action,
+            inheritance: item.inheritance,
+            route: item.route,
+          };
+        });
+    })
+  ;
+
+  const finalMiddlewares = [];
+  for(const i in middlewareReturn) {
+    for(const j in middlewareReturn[i]) {
+      finalMiddlewares.push(middlewareReturn[i][j]);
+    }
+  }
+
+  finalMiddlewares.sort((a, b) => {
+    return a.priority < b.priority ? 1 : -1;
+  });
+
+  return finalMiddlewares;
 }
 
 /**

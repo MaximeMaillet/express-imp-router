@@ -13,9 +13,9 @@
 
 ## Release 0.4.0 - Middleware priority
 
-#### To release
-
 * Add priority for middleware + natural priority when middleware is declared in route children
+
+#### To release
 
 * Tests
 
