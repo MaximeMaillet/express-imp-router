@@ -105,7 +105,7 @@ function find(rootPath, config) {
         );
       }
     } else if(route.startsWith('/')) {
-      middlewares = middlewares.concat(find(rootPath+route, config[route]));
+      middlewares = middlewares.concat(find((rootPath === '/' ? '' : rootPath)+route, config[route]));
     } else if(isMethod(route) && isObject(config[route])) {
       middlewares = middlewares.concat(find(rootPath, {
         ...config[route],
