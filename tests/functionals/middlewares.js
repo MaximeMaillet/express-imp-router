@@ -682,8 +682,7 @@ describe('Attach middlewares', () => {
             '/child': {
               [router.IMP.MIDDLEWARE]: [
                 {
-                  controllers: ['mInheritance#parent'],
-                  inheritance: router.MIDDLEWARE.INHERITANCE.DESC
+                  controllers: ['mInheritance#children'],
                 },
               ],
               get: 'HomeController#showMessage',
@@ -729,19 +728,209 @@ describe('Attach middlewares', () => {
         });
     });
 
-    /**
-     * Test for v0.4.0 - priority for middlewares
-     */
-    // it('Should return 200 with children as "message"', (done) => {
-    //   chai
-    //     .request(app)
-    //     .get('/child')
-    //     .end((err, res) => {
-    //       expect(err).to.be.null;
-    //       expect(res).to.have.status(200);
-    //       expect(res.body.message).to.equal('children');
-    //       done();
-    //     });
-    // });
+    it('Should return 200 with children as "message"', (done) => {
+      chai
+        .request(app)
+        .get('/child')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('children');
+          done();
+        });
+    });
+  });
+
+  describe('With natural priority', () => {
+    before((done) => {
+      port = 6061;
+      app = express();
+      router.purge();
+      router(app);
+      config = [{
+        controllers: `${path.resolve('.')}/tests/functionals/data/controllers`,
+        middlewares: `${path.resolve('.')}/tests/functionals/data/middlewares`,
+        routes: {
+          '/hello': {
+            [router.IMP.MIDDLEWARE]: [
+              {
+                controllers: ['mMessage#hello'],
+                inheritance: router.MIDDLEWARE.INHERITANCE.DESC,
+              },
+            ],
+            get: 'HomeController#showMessage',
+            '/sir': {
+              get: 'HomeController#showMessage',
+            },
+            '/world': {
+              [router.IMP.MIDDLEWARE]: [
+                {
+                  controllers: ['mMessage#world'],
+                },
+              ],
+              get: 'HomeController#showMessage',
+              '/hi': {
+                [router.IMP.MIDDLEWARE]: [
+                  {
+                    controllers: ['mMessage#hi'],
+                  },
+                ],
+                get: 'HomeController#showMessage',
+              }
+            },
+          },
+        },
+      }];
+      router.route(config);
+      server = app.listen(port, () => {
+        done();
+      });
+    });
+
+    after(() => {
+      app = null;
+      if(server) {
+        server.close();
+        server = null;
+      }
+    });
+
+    it('Should return 200 with hello as "message"', (done) => {
+      chai
+        .request(app)
+        .get('/hello')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('hello');
+          done();
+        });
+    });
+
+    it('Should return 200 with hello as "message"', (done) => {
+      chai
+        .request(app)
+        .get('/hello/sir')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('hello');
+          done();
+        });
+    });
+
+    it('Should return 200 with world as "message"', (done) => {
+      chai
+        .request(app)
+        .get('/hello/world')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('world');
+          done();
+        });
+    });
+
+    it('Should return 200 with hi as "message"', (done) => {
+      chai
+        .request(app)
+        .get('/hello/world/hi')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('hi');
+          done();
+        });
+    });
+  });
+
+  describe('With defined priority', () => {
+    before((done) => {
+      port = 6061;
+      app = express();
+      router.purge();
+      router(app);
+      config = [{
+        controllers: `${path.resolve('.')}/tests/functionals/data/controllers`,
+        middlewares: `${path.resolve('.')}/tests/functionals/data/middlewares`,
+        routes: {
+          '/': {
+            [router.IMP.MIDDLEWARE]: [
+              {
+                controllers: ['mMessage#hello'],
+                method: router.METHOD.GET,
+                priority: 0,
+              },
+              {
+                controllers: ['mMessage#world'],
+                method: router.METHOD.POST,
+                priority: 0,
+              },
+              {
+                controllers: ['mMessage#thank'],
+                method: router.METHOD.ALL,
+                priority: 1,
+              },
+              {
+                controllers: ['mMessage#hi'],
+                method: router.METHOD.ALL,
+                priority: 2,
+              },
+            ],
+            get: 'HomeController#showMessage',
+            post: 'HomeController#showMessage',
+            put: 'HomeController#showMessage',
+          },
+        },
+      }];
+      router.route(config);
+      server = app.listen(port, () => {
+        done();
+      });
+    });
+
+    after(() => {
+      app = null;
+      if(server) {
+        server.close();
+        server = null;
+      }
+    });
+
+    it('Should return 200 with hello as "message"', (done) => {
+      chai
+        .request(app)
+        .get('/')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('hello');
+          done();
+        });
+    });
+
+    it('Should return 200 with world as "message"', (done) => {
+      chai
+        .request(app)
+        .post('/')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('world');
+          done();
+        });
+    });
+
+    it('Should return 200 with hi as "message"', (done) => {
+      chai
+        .request(app)
+        .put('/')
+        .end((err, res) => {
+          expect(err).to.be.null;
+          expect(res).to.have.status(200);
+          expect(res.body.message).to.equal('thank');
+          done();
+        });
+    });
   });
 });

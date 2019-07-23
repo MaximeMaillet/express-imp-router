@@ -11,7 +11,7 @@
 
 
 
-## Releases 0.4.0 - Middleware priority
+## Release 0.4.0 - Middleware priority
 
 #### To release
 
@@ -20,7 +20,7 @@
 * Tests
 
 
-## Releases 0.3.2
+## Release 0.3.2
 
 * Fix bug middleware when you had a middleware in child of "/"
 
@@ -30,7 +30,7 @@
 
 
 
-## Releases 0.3.1
+## Release 0.3.1
 
 * Fix middleware level Global error
 
@@ -41,7 +41,7 @@
 * Tests
 
 
-## Releases 0.3.0 - Refacto
+## Release 0.3.0 - Refacto
 
 * Route's configuration accept path of json file or json object
 
