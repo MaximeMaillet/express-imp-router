@@ -20,6 +20,10 @@
 * Tests
 
 
+## Releases 0.3.2
+
+* Fix bug middleware when you had a middleware in child of "/"
+
 
 ## Releases 0.3.1
 
