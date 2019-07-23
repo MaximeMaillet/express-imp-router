@@ -34,7 +34,7 @@ function get(debug) {
 
   return [routes.map((route) => {
     let color = colors.white;
-    const controllersName = [], actionsName = [], debugMessages = [];
+    let controllersName = [], actionsName = [], debugMessages = [];
     let controllersGenerated = 0, statusMessage = '', statusController = 0;
 
     if(route.debug.message) {
@@ -60,6 +60,12 @@ function get(debug) {
         controllersGenerated++;
       }
     });
+
+    if(route.static) {
+      controllersName = 'Static';
+      actionsName = route.debug.action;
+      debugMessages = route.debug.message;
+    }
 
     if(route.status === 0) {
       if(statusController === 0) {
