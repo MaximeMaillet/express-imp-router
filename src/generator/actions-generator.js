@@ -27,7 +27,11 @@ function findController(path, file) {
 }
 
 function generateStatic(route) {
-  const dirPath = `${path.resolve('.')}/${route.action}`;
+  let dirPath = route.action;
+  if(!dirPath.startsWith('/')) {
+    dirPath = `${path.resolve('.')}/${route.action}`;
+  }
+
   if(!fs.existsSync(dirPath)) {
     throw {
       type: 'action',

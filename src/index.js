@@ -36,13 +36,13 @@ module.exports.route = (routesConfig) => {
     generator.generate(Middleware.extract(routesConfig));
 
     let notFoundErrors = 0;
+    const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL);
+    if(globalMiddleware.length > 0) {
+      expressApp.use(globalMiddleware.map(middleware => middleware.actions));
+    }
+
     const routes = Route.get();
     for(const i in routes) {
-      const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL, routes[i].route);
-      if(globalMiddleware.length > 0) {
-        expressApp.use(routes[i].route, globalMiddleware.map(middleware => middleware.actions));
-      }
-
       // Add static routes
       if(routes[i].static) {
         for(const j in routes[i].actions) {
