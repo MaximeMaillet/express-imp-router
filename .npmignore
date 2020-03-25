@@ -1,3 +1,8 @@
 docs
 example
 tests
+node_modules
+.idea
+.nvmrc
+.eslintrc.json
+.git

@@ -4,13 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
   },
+  "author": "Maxime Maillet <maxime.maillet93@gmail.com>",
+  "license": "ISC",
   "dependencies": {
-    "express": "^4.16.4",
-    "express-imp-router": "https://github.com/MaximeMaillet/express-imp-router.git#v0.3.0"
-  },
-  "author": "",
-  "license": "ISC"
+    "express": "^4.17.1",
+    "express-imp-router": "^0.3.1"
+  }
 }

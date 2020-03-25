@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const router = require('../../index');
+const router = require('express-imp-router');
 
 router(app);
 router.enableDebug();
@@ -10,38 +10,32 @@ router.route([
     middlewares: `${__dirname}/middlewares`,
     routes: {
       '/first-error': {
-        '_middleware_': {
+        [router.IMP.MIDDLEWARE]: {
           controllers: ['errors#firstError'],
-          level: router.MIDDLEWARE_LEVEL.ERROR,
+          level: router.MIDDLEWARE.LEVEL.ERROR,
         },
         get: 'HomeController#throwError',
         '/second-error': {
-          '_middleware_': {
+          [router.IMP.MIDDLEWARE]: {
             controllers: ['errors#firstSecondError'],
-            level: router.MIDDLEWARE_LEVEL.ERROR,
+            level: router.MIDDLEWARE.LEVEL.ERROR,
           },
           get: 'HomeController#throwError',
         }
       },
       '/first-error-async': {
-        '_middleware_': {
+        [router.IMP.MIDDLEWARE]: {
           controllers: ['errors#firstError'],
-          level: router.MIDDLEWARE_LEVEL.ERROR,
+          level: router.MIDDLEWARE.LEVEL.ERROR,
         },
         get: 'HomeController#throwErrorAsync',
       },
       '/second-error': {
-        '_middleware_': {
-          controller: 'errors#secondError',
-          level: router.MIDDLEWARE_LEVEL.ERROR,
+        [router.IMP.MIDDLEWARE]: {
+          controllers: ['errors#secondError'],
+          level: router.MIDDLEWARE.LEVEL.ERROR,
         },
         get: 'HomeController#throwError',
-      },
-      '*': {
-        '_middleware_': {
-          controller: 'errors#allError',
-          level: router.MIDDLEWARE_LEVEL.ERROR,
-        }
       }
     }
   }

@@ -6,6 +6,7 @@ const Middleware = require('./lib/middlewares');
 const NotFoundHandler = require('./handlers/notfound');
 const ErrorHandler = require('./handlers/error');
 const MIDDLEWARE_LEVEL = require('./config/middleware').LEVEL;
+const MIDDLEWARE_INHERITANCE = require('./config/middleware').INHERITANCE;
 
 let isDebug = false, expressApp = null;
 
@@ -14,6 +15,8 @@ let isDebug = false, expressApp = null;
  */
 module.exports = function(app) {
   expressApp = app;
+
+  checkApp();
 
   process.argv.forEach((val) => {
     if(val.startsWith('-v')) {
@@ -24,16 +27,29 @@ module.exports = function(app) {
   return module.exports;
 };
 
+module.exports.purge = () => {
+  Route.purge();
+  Middleware.purge();
+};
+
 /**
  * Initialize routes
  * @param routesConfig
  */
 module.exports.route = (routesConfig) => {
-  try {
-    routesConfig = Config.read(routesConfig);
 
+  checkApp();
+
+  routesConfig = Config.read(routesConfig);
+
+  try {
     generator.generate(Route.extract(routesConfig));
     generator.generate(Middleware.extract(routesConfig));
+
+    const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL);
+    if(globalMiddleware.length > 0) {
+      expressApp.use(globalMiddleware.map(middleware => middleware.actions));
+    }
 
     let notFoundErrors = 0;
     const globalMiddleware = Middleware.get(MIDDLEWARE_LEVEL.GLOBAL);
@@ -61,26 +77,47 @@ module.exports.route = (routesConfig) => {
     }
 
     // Add error middlewares
-    const errorMiddleware = Middleware.get(MIDDLEWARE_LEVEL.ERROR);
-    for(const i in errorMiddleware) {
-      expressApp.use(errorMiddleware[i].route, errorMiddleware[i].actions);
-    }
+    expressApp.use([
+      (err, req, res, next) => {
+        const errorMiddleware = Middleware.get(MIDDLEWARE_LEVEL.ERROR);
+        for(const i in errorMiddleware) {
+          let regExp = null;
+          if(errorMiddleware[i].inheritance === MIDDLEWARE_INHERITANCE.DESC) {
+            regExp = new RegExp(`^${errorMiddleware[i].route}`);
+          } else {
+            regExp = new RegExp(`^${errorMiddleware[i].route}$`);
+          }
 
-    expressApp.use(ErrorHandler.handle);
-
-    expressApp.use((req, res, next) => {
-      notFoundErrors = Middleware.get(MIDDLEWARE_LEVEL.NOT_FOUND);
-      for(const i in notFoundErrors) {
-        const regExp = new RegExp(notFoundErrors[i].route);
-        if(regExp.exec(req.url)) {
-          return notFoundErrors[i].actions[0](req, res, next);
+          if(regExp.exec(req.url)) {
+            return errorMiddleware[i].actions[0](err, req, res, next);
+          }
         }
-      }
 
-      next();
-    });
+        next(err);
+      },
+      ErrorHandler.handle
+    ]);
 
-    expressApp.use(NotFoundHandler.handle);
+    // Not found middlewares
+    expressApp.use([
+      (req, res, next) => {
+        notFoundErrors = Middleware.get(MIDDLEWARE_LEVEL.NOT_FOUND);
+        for(const i in notFoundErrors) {
+          let regExp = null;
+          if(notFoundErrors[i].inheritance === MIDDLEWARE_INHERITANCE.DESC) {
+            regExp = new RegExp(`^${notFoundErrors[i].route}`);
+          } else {
+            regExp = new RegExp(`^${notFoundErrors[i].route}$`);
+          }
+
+          if(regExp.exec(req.url)) {
+            return notFoundErrors[i].actions[0](req, res, next);
+          }
+        }
+        next();
+      },
+      NotFoundHandler.handle
+    ]);
 
     if(isDebug) {
       const columnify = require('columnify');
@@ -103,3 +140,12 @@ module.exports.enableDebug = () => {
   Route.enableDebug();
   Middleware.enableDebug();
 };
+
+/**
+ * Check if app exists  and it's correct
+ */
+function checkApp() {
+  if (!expressApp) {
+    throw new Error('You should provide app from express');
+  }
+}

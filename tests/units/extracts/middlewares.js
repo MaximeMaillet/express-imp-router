@@ -261,4 +261,53 @@ describe('Extract middlewares', () => {
       });
     });
   });
+
+  describe('with children', () => {
+    let result = null;
+    before(() => {
+      mainConfig['routes'] = {
+        '/': {
+          [router.IMP.MIDDLEWARE]: [
+            {
+              controllers: ['mInheritance#parent'],
+              inheritance: router.MIDDLEWARE.INHERITANCE.DESC
+            },
+          ],
+          get: 'HomeController#showMessage',
+          '/child': {
+            [router.IMP.MIDDLEWARE]: [
+              {
+                controllers: ['mInheritance#parent'],
+                inheritance: router.MIDDLEWARE.INHERITANCE.DESC
+              },
+            ],
+            get: 'HomeController#showMessage',
+          }
+        }
+      };
+      result = midExtract.extract(mainConfig, mainConfig.routes);
+    });
+
+    after(() => {
+      result = null;
+    });
+
+    it('should return array with 2 middlewares', () => {
+      expect(result).to.be.an('array').that.have.lengthOf(2);
+    });
+
+    it('should have, as first element, root config', () => {
+      expect(result[0].controllers).to.be.an('array').that.have.lengthOf(1);
+      expect(result[0].method).to.be.a('string');
+      expect(result[0].route).to.equal('/');
+      expect(result[0].method).to.equal(router.METHOD.ALL);
+    });
+
+    it('should have, as second element, /child config', () => {
+      expect(result[1].controllers).to.be.an('array').that.have.lengthOf(1);
+      expect(result[1].method).to.be.a('string');
+      expect(result[1].route).to.equal('/child');
+      expect(result[1].method).to.equal(router.METHOD.ALL);
+    })
+  });
 });

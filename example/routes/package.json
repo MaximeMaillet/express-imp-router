@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.16.4",
-    "express-imp-router": "https://github.com/MaximeMaillet/express-imp-router.git#v0.3.0"
+    "express": "^4.17.1",
+    "express-imp-router": "^0.3.1"
   }
 }
